@@ -1,0 +1,9 @@
+zmodule zsh-users/zsh-syntax-highlighting
+zmodule zsh-users/zsh-autosuggestions
+zmodule zsh-users/zsh-completions --fpath /srs
+
+zmodule completion
+zmodule exa
+# getting the impression this isnt working either
+# zmodule environment
+zmodule eriner
