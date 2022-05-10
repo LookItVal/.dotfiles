@@ -1,9 +1,21 @@
-zmodule zsh-users/zsh-syntax-highlighting
-zmodule zsh-users/zsh-autosuggestions
-zmodule zsh-users/zsh-completions --fpath /srs
+MODDIR=~/.config/zsh/modules
 
 zmodule completion
 zmodule exa
-# getting the impression this isnt working either
-# zmodule environment
+zmodule environment
 zmodule eriner
+zmodule git
+zmodule git-info
+zmodule fzf
+zmodule input
+zmodule prompt-pwd
+
+zmodule zsh-users/zsh-syntax-highlighting
+zmodule zsh-users/zsh-autosuggestions
+zmodule zsh-users/zsh-completions --fpath /srs
+zmodule trystan2k/zsh-tab-title
+
+zmodule $MODDIR/fzf
+zmodule $MODDIR/fzf -s key-bindings.zsh -s completion.zsh
+zmodule $MODDIR/bat
+zmodule $MODDIR/editor
