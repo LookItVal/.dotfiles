@@ -32,3 +32,6 @@ Todo
 [] alias pls: do the last command with the 'sudo' prefix
 [] get my git settings properly set
 [] link ssh key with github
+[] Replace zimfw fzf with hand made fzf init file
+    - Set CTRL+T and Default to use ripgrep
+    - Set ALT-C to use FD
