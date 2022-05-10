@@ -19,7 +19,7 @@ else
 fi
 
 # Installing Neovim
-if [[ $(which neovim) == "" ]];then
+if [[ $(which nvim) == "" ]];then
     echo Installing Neovim
     brew install neovim
 else
@@ -63,3 +63,13 @@ else
     fd -V
 fi
 # (Used by fzf)
+
+# Installing Ripgrep
+if [[ $(which rg) == "" ]]; then
+    echo Installing Ripgrep
+    brew install ripgrep
+else
+    echo Ripgrep Currently Installed
+    rg -V
+fi
+# (Also Used by Fzf)

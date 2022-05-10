@@ -49,4 +49,4 @@ cd fonts
 cd ..
 rm -rf fonts
 echo Fonts installed but will manually need to be set in Terminal Preferences
-echo I find myself prefering something simple like 'Fira Mono for Powerline'
+echo I find myself prefering something simple like 'Go Mono for Powerline'

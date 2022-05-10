@@ -6,7 +6,6 @@ zmodule environment
 zmodule eriner
 zmodule git
 zmodule git-info
-zmodule fzf
 zmodule input
 zmodule prompt-pwd
 

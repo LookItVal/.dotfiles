@@ -10,6 +10,8 @@ Done
 [x] Set ctrl+t to open fzf-tmux not fzf
 [x] get alt-c to work with fzf
 [x] use iTerm2
+[x] Replace zimfw fzf with hand made fzf init file
+[x] Update with this new font I like
 
 Todo
 -----------
@@ -28,10 +30,5 @@ Todo
     - I think its called easymotion
 [] Get zsh vi mode
 [] Set vim aliases for jk/kj to exit input mode
-[] Update with this new font I like
 [] alias pls: do the last command with the 'sudo' prefix
 [] get my git settings properly set
-[] link ssh key with github
-[] Replace zimfw fzf with hand made fzf init file
-    - Set CTRL+T and Default to use ripgrep
-    - Set ALT-C to use FD
