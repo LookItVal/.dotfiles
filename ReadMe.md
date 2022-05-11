@@ -21,14 +21,13 @@ Todo
 [] Set GitHub Dark Theme for everything (which may include making themes from scratch)
     - bat
 done- nvim
-    - tmux
+done- tmux
 done- zsh
     - fzf
 [] Set interpreter prompts for languages (make it match the general theme for zsh)
     - python
     - haskell
     - kotlin
-[] Get zsh vi mode
 [] alias pls: do the last command with the 'sudo' prefix
 [] get my git settings properly set
 [] alias for git commit -m to git 
@@ -43,3 +42,4 @@ done- zsh
           - Tmux
 	  - Vim
 	  - Native
+[] Tmux Plugins
