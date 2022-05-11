@@ -39,8 +39,15 @@ sh ${LOCAL_PATH}/mac/software.sh
 # Installing Languages
 sh ${LOCAL_PATH}/mac/languages.sh
 
+# Installing Dependencies
+sh ${LOCAL_PATH}/mac/dependencies.sh 
+
 # Linking Paths
 sh ${LOCAL_PATH}/all/link.sh
+
+# Installing Vim-Plug
+sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
+       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
 
 # Installing Fonts needed for eriner down the line
 git clone https://github.com/powerline/fonts.git --depth=1

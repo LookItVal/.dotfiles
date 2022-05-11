@@ -12,23 +12,34 @@ Done
 [x] use iTerm2
 [x] Replace zimfw fzf with hand made fzf init file
 [x] Update with this new font I like
+[x] Set vim aliases for jk/kj to exit input mode
+[x] Get the quick find thing for nvim
+[x] Get github copilot in nvim
 
 Todo
 -----------
 [] Set GitHub Dark Theme for everything (which may include making themes from scratch)
     - bat
-    - nvim
+done- nvim
     - tmux
-    - zsh
+done- zsh
     - fzf
 [] Set interpreter prompts for languages (make it match the general theme for zsh)
     - python
     - haskell
     - kotlin
-[] Get github copilot in nvim
-[] Get the quick find thing for nvim
-    - I think its called easymotion
 [] Get zsh vi mode
-[] Set vim aliases for jk/kj to exit input mode
 [] alias pls: do the last command with the 'sudo' prefix
 [] get my git settings properly set
+[] alias for git commit -m to git 
+[] there is a to do list in the nvim init file, this should be told to the user somehow in the end of the init script
+[] The init script should tell you in clear text everything that needs to be manually done
+[] the ReadMe.md file should clearly list
+     - A fill list of installed plugins tools, and options
+     - everything that needs to be done to properly install on each system
+     - screenshots and images of what this will look like
+     - a list of all changes to the sysem
+     - a list of all commands that should be known in
+          - Tmux
+	  - Vim
+	  - Native
