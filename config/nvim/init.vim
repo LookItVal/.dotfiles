@@ -1,4 +1,4 @@
-" Vim-Plugs required for the rest of the configuration
+"Vim-Plugs required for the rest of the configuration
 " Should be installed already by init script
 "     This will prep the scripts in vim, to install:
 "     Open vim, enter the command          :PlugInstall
@@ -15,9 +15,12 @@ call plug#begin(has('nvim') ? stdpath('data') . '/plugged' : '~/.vim/plugged')
 Plug 'easymotion/vim-easymotion'
 Plug 'projekt0n/github-nvim-theme' 
 Plug 'github/copilot.vim'
+Plug 'wojciechkepka/vim-github-dark' 
+Plug 'ap/vim-css-color'
+Plug 'vim-scripts/guicolorscheme.vim'
 call plug#end()
 
-colorscheme github_dark_default
+colorscheme ghdark
 
 " Quick Escape
 imap kj <Esc>
@@ -34,5 +37,5 @@ vmap <Leader>j <Plug>(easymotion-j)
 vmap <Leader>k <Plug>(easymotion-k)
 
 " Spell Check
-set spelllang=en
-set spell
+" :set spelllang=en
+" set spell

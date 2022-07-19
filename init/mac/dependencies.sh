@@ -9,4 +9,12 @@ else
     brew info node
 fi
 
+# Updating Less for Bat (I know, seems redundant doesn't it?)
+if [[ $(brew info less) == *Error ]]; then
+    echo Installing Less
+    brew install less
+else
+    echo Less Currently Installed
+    brew info less
+fi
 
