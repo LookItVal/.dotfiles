@@ -8,3 +8,21 @@ This whole system is intended to be revolved around using TMUX as a window manag
 	<img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/misc/transparent.png" height="30" width="0px"/>
 	Catppuccin Macchiato
 </h3>
+
+## Table of Contents
+- [Installation](#installation)
+- [Theme](#theme)
+- [TMUX](#tmux)
+- [NVIM](#nvim)
+
+## Installation
+Simply run `sudo ./init.sh` to install.
+
+## Theme
+details include
+
+## TMUX
+details include
+
+## NVIM
+details include
