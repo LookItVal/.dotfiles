@@ -40,7 +40,24 @@ alias lsa='ls -a'
 alias lla='ll -a'
 alias lra='llr -a'
 
+# nvim aliases
+alias v='nvim'
+alias vi='v'
+alias vim='v'
+
+# general aliases
 alias pls='sudo $(fc -ln -1)'
+
 
 # UBUNTU path for snap
 export PATH=$PATH:/snap/bin
+
+# Open or attach to tmux session
+if [ -z "$TMUX" ]; then
+  tmux has-session 2>/dev/null
+  if [ $? != 0 ]; then
+    exec tmux
+  else
+    exec tmux attach-session
+  fi
+fi
