@@ -21,3 +21,26 @@ fi
 
 # Initialize modules.
 source ${ZIM_HOME}/init.zsh
+
+# Content from old .zshrc
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Aliases
+# exa aliases
+alias l='exa'
+alias ls='l'
+alias la='l -a'
+alias lr='l --tree'
+alias ll='ls --long --header'
+alias lsr='ls --tree'
+alias llr='ll --tree'
+alias lsa='ls -a'
+alias lla='ll -a'
+alias lra='llr -a'
+
+alias pls='sudo $(fc -ln -1)'
+
+# UBUNTU path for snap
+export PATH=$PATH:/snap/bin
