@@ -27,6 +27,10 @@ if [ $os = "ubuntu" ]; then
   sudo apt update
   sudo apt install -y zsh curl git exa
   sudo snap install nvim --classic
+  # NOTE this assumes it exists as a WSL
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+  ln -s ~/.dotfiles/config/alacritty/alacritty.toml "/mnt/c/Users/Audio Suite/AppData/Roaming/alacritty/alacritty.toml"
+  ln -s ~/.dotfiles/config/alacritty/catppuccin-macchiato.toml "/mnt/c/Users/Audio Suite/AppData/Roaming/alacritty/catppuccin-macchiato.toml"
 fi
 
 # ALL MAC SPECIFIC THINGS

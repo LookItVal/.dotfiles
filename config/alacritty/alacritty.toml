@@ -1,2 +1,26 @@
+import = [
+  # uncomment the flavour you want below:
+  # "~/.config/alacritty/catppuccin-latte.toml"
+  # "~/.config/alacritty/catppuccin-frappe.toml"
+  "C:\\Users\\Audio Suite\\AppData\\Roaming\\alacritty\\catppuccin-macchiato.toml"
+  # "~/.config/alacritty/catppuccin-mocha.toml"
+]
+
 [shell]
 program = "C:\\Windows\\System32\\wsl.exe ~"
+
+[font.normal]
+family = "FiraMono Nerd Font Mono"
+style = "Regular"
+
+[font.bold]
+family = "FiraMono Nerd Font Mono"
+style = "Medium"
+
+[font.bold_italic]
+family = " FiraMono Nerd Font Mono"
+style = "Bold"
+
+[font.italic]
+family = "FireMono Nerd Font Mono"
+style = "Medium"
