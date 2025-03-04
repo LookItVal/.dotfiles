@@ -9,32 +9,6 @@
 #
 # Please see https://i3wm.org/docs/userguide.html for a complete reference!
 
-set $mod Mod4
-set $locker i3lock -b -c 073642
-
-# Font for window titles. Will also be used by the bar unless a different font
-# is used in the bar {} block below.
-font pango:monospace 8
-
-# This font is widely installed, provides lots of unicode glyphs, right-to-left
-# text rendering and scalability on retina/hidpi displays (thanks to pango).
-#font pango:DejaVu Sans Mono 8
-
-# Start XDG autostart .desktop files using dex. See also
-# https://wiki.archlinux.org/index.php/XDG_Autostart
-exec --no-startup-id dex --autostart --environment i3
-
-# The combination of xss-lock, nm-applet and pactl is a popular choice, so
-# they are included here as an example. Modify as you see fit.
-
-# xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
-# screen before suspend. Use loginctl lock-session to lock your screen.
-exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
-
-# NetworkManager is the most popular way to manage wireless networks on Linux,
-# and nm-applet is a desktop environment-independent system tray GUI for it.
-exec --no-startup-id nm-applet
-
 # Set Theme
 set $rosewater #f4dbd6
 set $flamingo #f0c6c6
@@ -62,6 +36,41 @@ set $surface0 #363a4f
 set $base #24273a
 set $mantle #1e2030
 set $crust #181926
+
+# class                 border    backgr. text      indicator child_border
+client.focused          $base     $base   $lavender $base     $base
+client.focused_inactive $base     $base   $lavender $base     $base
+client.unfocused        $crust    $crust  $subtext0 $base     $base
+client.urgent           $base     $crust  $red      $base     $base
+client.placeholder      $crust    $crust  $subtext0 $base     $bases
+
+client.background       $crust
+
+set $mod Mod4
+set $locker i3lock -b -B 5 --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""
+
+# Font for window titles. Will also be used by the bar unless a different font
+# is used in the bar {} block below.
+font pango:monospace 8
+
+# This font is widely installed, provides lots of unicode glyphs, right-to-left
+# text rendering and scalability on retina/hidpi displays (thanks to pango).
+#font pango:DejaVu Sans Mono 8
+
+# Start XDG autostart .desktop files using dex. See also
+# https://wiki.archlinux.org/index.php/XDG_Autostart
+exec --no-startup-id dex --autostart --environment i3
+
+# The combination of xss-lock, nm-applet and pactl is a popular choice, so
+# they are included here as an example. Modify as you see fit.
+
+# xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
+# screen before suspend. Use loginctl lock-session to lock your screen.
+exec --no-startup-id xss-lock --transfer-sleep-lock -- $locker --nofork
+
+# NetworkManager is the most popular way to manage wireless networks on Linux,
+# and nm-applet is a desktop environment-independent system tray GUI for it.
+exec --no-startup-id nm-applet
 
 # Use pactl to adjust volume in PulseAudio.
 set $refresh_i3status killall -SIGUSR1 i3status
@@ -179,7 +188,7 @@ bindsym $mod+Shift+9 move container to workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10
 
 # Lock Screen
-bindsym $mod+Escape exec "$locker && xset dpms force off"
+bindsym $mod+Escape exec $locker
 
 # reload the configuration file
 bindsym $mod+Shift+c reload
@@ -219,6 +228,17 @@ bindsym $mod+r mode "resize"
 # finds out, if available)
 bar {
         status_command i3status
+        colors {
+                background $mantle
+                statusline #ffffff
+                separator #666666
+                #<colorclass>      <border> <background> <text>
+                focused_workspace  $mauve    $mauve    $crust
+                active_workspace   $lavender $lavender $text
+                inactive_workspace $base     $base     $subtext0
+                urgent_workspace   $red      $red      $text
+                binding_mode       $blue     $blue     $text
+    }
 }
 
 ##########################
