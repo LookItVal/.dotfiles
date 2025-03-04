@@ -35,5 +35,5 @@ systemctl enable wallpaper.timer
 systemctl start wallpaper.timer
 
 sudo pacman -Syu
-sudo pacman -S --noconfirm exa bat ripgrep fd fzf neovim alacritty i3-wm xorg xorg-xinit xorg-server i3lock i3status rofi pulseaudio pavucontrol index-fm firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc
+sudo pacman -S --noconfirm exa bat ripgrep fd fzf neovim alacritty i3-wm xorg xorg-xinit xorg-server i3lock i3status rofi pulseaudio pavucontrol firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc
 yay visual-studio-code-bin i3lock-color micromamba nvm
