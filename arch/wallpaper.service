@@ -1,0 +1,6 @@
+[Unit]
+Description=Wallpaper changing service
+
+[Service]
+Type=oneshot
+ExecStart=/etc/systemd/system/wallpaper.sh

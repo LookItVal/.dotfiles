@@ -2,8 +2,6 @@
 
 cd $HOME
 
-. .dotfiles/utilities.sh
-
 os=$(uname -s)
 if [ $os = "Darwin" ]; then
   os="mac"
@@ -17,6 +15,7 @@ if [ $os =  "Linux" ]; then
   fi
 fi
 
+# ALL UNKNOWN OPERATING SYSTEMS
 if [ $os = "unknown" ]; then
   echo "Unknown OS"
   exit 1
@@ -34,10 +33,21 @@ if [ $os = "ubuntu" ]; then
 fi
 
 # ALL MAC SPECIFIC THINGS
+if [ $os = 'mac' ]; then
+  . .dotfiles/init/mac.sh
+fi
 
 # ALL ARCH SPECIFIC THINGS
+if [ $os = 'arch' ]; then
+  . .dotfiles/init/arch.sh
+fi
 
 # ALL GENERAL THINGS
-
 # link files
-link_files zshrc config
+. .dotfiles/init/all/link.sh
+
+echo "Setup complete, would you like to restart now? (y/n)"
+read answer
+if [[ $answer == "y" ]]; then
+  sudo reboot
+fi

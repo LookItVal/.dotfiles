@@ -12,8 +12,7 @@ This whole system is intended to be revolved around using Alacritty as a termina
 ## Table of Contents
 - [Installation](#installation)
 - [Theme](#theme)
-- [TMUX](#tmux)
-- [NVIM](#nvim)
+- [Packages](#packages)
 
 ## Installation
 Simply run `sudo ./init.sh` to install. That's all you really want to know right?
@@ -27,8 +26,5 @@ As of right now it only detects mac vs Linux effectively and can *likely* find w
 ### Theme
 details include
 
-### TMUX
-details include
-
-### NVIM
-details include
+### Packages
+details later

@@ -48,16 +48,35 @@ alias vim='v'
 # general aliases
 alias pls='sudo $(fc -ln -1)'
 
-
-# UBUNTU path for snap
-export PATH=$PATH:/snap/bin
-
-# Open or attach to tmux session
-if [ -z "$TMUX" ]; then
-  tmux has-session 2>/dev/null
-  if [ $? != 0 ]; then
-    exec tmux
+# get os
+os=$(uname -s)
+if [ $os = "Darwin" ]; then
+  os="mac"
+fi
+if [ $os =  "Linux" ]; then
+  if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    os=$ID
   else
-    exec tmux attach-session
+    os="unknown"
+  fi
+fi
+
+# if os is ubuntu
+if [ $os = "ubuntu" ]; then
+  # UBUNTU path for snap
+  export PATH=$PATH:/snap/bin
+fi
+
+# if os is not arch
+if [ $os != "arch" ]; then
+  # Open or attach to tmux session
+  if [ -z "$TMUX" ]; then
+    tmux has-session 2>/dev/null
+    if [ $? != 0 ]; then
+      exec tmux
+    else
+      exec tmux attach-session
+    fi
   fi
 fi
