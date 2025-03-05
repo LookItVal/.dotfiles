@@ -45,6 +45,7 @@ yay i3lock-color
 yay micromamba
 yay nvm
 yay spicetify-cli
+yay networkmanager-dmenu-git
 
 spicetify config current_theme catppuccin
 spicetify config color_scheme macchiato
