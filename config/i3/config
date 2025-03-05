@@ -245,5 +245,5 @@ bar {
 ##########################
 # Start Process
 ##########################
-
-exec $locker
+exec feh --bg-fill $(find ~/.dotfiles/arch/wallpapers -type f | shuf -n 1)
+exec i3lock -b --image=$(find ~/.dotfiles/arch/wallpapers -type f | shuf -n 1) -F --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""

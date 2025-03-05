@@ -1,0 +1,11 @@
+[ExtractDialog]
+1728x1080 screen: Height=539
+1728x1080 screen: Width=1133
+DirHistory[$e]=$HOME/Downloads/
+
+[General]
+LockSidebar=true
+ShowSidebar=true
+
+[MainWindow]
+StatusBar=Disabled
