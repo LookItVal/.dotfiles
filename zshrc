@@ -3,8 +3,8 @@ ZDOTDIR=~/.config/zsh/
 
 # Stolen from Tyler, im not using this now
 # Used by zsh-tab-title module
-# ZSH_TAB_TITLE_ADDITIONAL_TERMS='alacritty'
-# ZSH_TAB_TITLE_ONLY_FOLDER=true
+ZSH_TAB_TITLE_ADDITIONAL_TERMS='alacritty'
+ZSH_TAB_TITLE_ONLY_FOLDER=true
 
 # Install Zim if not currently installed
 if [[ ! -e ${ZIM_HOME}/zimfw.zsh ]]
@@ -21,11 +21,6 @@ fi
 
 # Initialize modules.
 source ${ZIM_HOME}/init.zsh
-
-# Content from old .zshrc
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # Aliases
 # exa aliases
