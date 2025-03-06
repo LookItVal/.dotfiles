@@ -38,16 +38,16 @@ set $mantle #1e2030
 set $crust #181926
 
 # class                 border    backgr. text      indicator child_border
-client.focused          $base     $base   $lavender $base     $base
-client.focused_inactive $base     $crust  $lavender $base     $base
-client.unfocused        $crust    $crust  $subtext0 $base     $base
-client.urgent           $base     $crust  $red      $base     $base
-client.placeholder      $crust    $crust  $subtext0 $base     $bases
+client.focused          $mauve    $mauve  $crust    $base     $mauve
+client.focused_inactive $crust    $crust  $lavender $base     $mantle
+client.unfocused        $crust    $crust  $subtext0 $base     $mantle
+client.urgent           $base     $crust  $red      $base     $mantle
+client.placeholder      $crust    $crust  $subtext0 $base     $mantle
 
 client.background       $crust
 
-set $mod Mod1
-set $locker i3lock -b -B 5 --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""
+set $mod Mod4
+set $locker wi3lock -b -B 5 --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -93,7 +93,7 @@ bindsym $mod+Return exec i3-sensible-terminal
 bindsym $mod+Shift+q kill
 
 # start dmenu (a program launcher)
-bindsym $mod+d exec "rofi -terminal $term -combi-modi window,drun -show combi -modi combi,run,ssh -icon-theme 'Papirus' -show-icons"
+bindsym $mod+d exec "rofi -terminal $term -combi-modi window,drun -show combi -modi combi,run,ssh -icon-theme 'Papirus' -show-icons -dpi 192"
 # A more modern dmenu replacement is rofi:
 # bindcode $mod+40 exec "rofi -modi drun,run -show drun"
 # There also is i3-dmenu-desktop which only displays applications shipping a
@@ -228,7 +228,9 @@ bindsym $mod+r mode "resize"
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
 bar {
-        status_command i3status
+        font pango:FiraCode Nerd Font 10
+        status_command i3blocks
+        padding -2px 0
         colors {
                 background $mantle
                 statusline $text

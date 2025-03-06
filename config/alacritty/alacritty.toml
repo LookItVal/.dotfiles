@@ -1,18 +1,18 @@
 
 [font.normal]
-family = "FiraMono Nerd Font Mono"
+family = "FiraCode Nerd Font"
 style = "Regular"
 
 [font.bold]
-family = "FiraMono Nerd Font Mono"
+family = "FiraCode Nerd Font"
 style = "Medium"
 
 [font.bold_italic]
-family = " FiraMono Nerd Font Mono"
+family = " FiraCode Nerd Font"
 style = "Bold"
 
 [font.italic]
-family = "FireMono Nerd Font Mono"
+family = "FireCode Nerd Font"
 style = "Medium"
 
 [general]

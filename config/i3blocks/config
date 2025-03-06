@@ -1,0 +1,108 @@
+[separator]
+command=echo $'\uE0B2'
+interval=once
+LABEL=SEP
+separator=false
+separator_block_width=0
+color=#c6a0f6
+background=#1e2030
+
+[network]
+command=$HOME/.config/i3blocks/network.sh -i -n -I
+interval=5
+LABEL=NET
+separator=false
+separator_block_width=0
+color=#181926
+background=#c6a0f6
+
+[separator]
+command=echo $'\uE0B2'
+interval=once
+LABEL=SEP
+separator=false
+separator_block_width=0
+color=#ed8796
+background=#c6a0f6
+
+[cpu_usage]
+command=$HOME/.config/i3blocks/cpu_usage.sh -i -t
+interval=5
+LABEL=CPU 
+background=
+separator=false
+separator_block_width=0
+color=#181926
+background=#ed8796
+
+[separator]
+command=echo $'\uE0B2'
+interval=once
+LABEL=SEP
+separator=false
+separator_block_width=0
+color=#f5a97f
+background=#ed8796
+
+[memory]
+command=$HOME/.config/i3blocks/memory.sh -i -f -p
+interval=5
+LABEL=MEM
+separator=false
+separator_block_width=0
+color=#181926
+background=#f5a97f
+
+[separator]
+command=echo $'\uE0B2'
+interval=once
+LABEL=SEP
+separator=false
+separator_block_width=0
+color=#eed49f
+background=#f5a97f
+
+[gpu_usage]
+command=$HOME/.config/i3blocks/gpu_usage.sh -i -t
+interval=5
+LABEL=GPU 
+separator=false
+separator_block_width=0
+color=#181926
+background=#eed49f
+
+[separator]
+command=echo $'\uE0B2'
+interval=once
+LABEL=SEP
+separator=false
+separator_block_width=0
+background=#eed49f
+color=#a6da95
+
+[time]
+command=$HOME/.config/i3blocks/time.sh -i -H -s
+interval=1
+LABEL=TIME
+separator=false
+separator_block_width=0
+color=#181926
+background=#a6da95
+
+[separator]
+command=echo $'\uE0B2'
+interval=once
+LABEL=SEP
+separator=false
+separator_block_width=0
+background=#a6da95
+color=#8aadf4
+
+[date]
+command=$HOME/.config/i3blocks/date.sh -i -y
+interval=60
+LABEL=DATE
+separator=false
+separator_block_width=0
+color=#181926
+background=#8aadf4
