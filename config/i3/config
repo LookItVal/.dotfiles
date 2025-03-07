@@ -38,7 +38,7 @@ set $mantle #1e2030
 set $crust #181926
 
 # class                 border    backgr. text      indicator child_border
-client.focused          $mauve    $mauve  $crust    $base     $mauve
+client.focused          $mauve    $mauve  $crust    $mauve    $mauve
 client.focused_inactive $crust    $crust  $lavender $base     $mantle
 client.unfocused        $crust    $crust  $subtext0 $base     $mantle
 client.urgent           $base     $crust  $red      $base     $mantle
