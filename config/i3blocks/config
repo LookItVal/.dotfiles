@@ -8,7 +8,7 @@ color=#c6a0f6
 background=#1e2030
 
 [cpu_usage]
-command=$HOME/.config/i3blocks/cpu_usage.sh -i
+command=if [ $button ]; then sh $HOME/.config/i3blocks/cpu_usage_expand.sh; else sh $HOME/.config/i3blocks/cpu_usage.sh -i; fi
 interval=5
 LABEL=CPU 
 background=

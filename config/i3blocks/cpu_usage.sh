@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 show_icon=false
-show_use=true
+ALL_CORES=$(cat $HOME/.config/i3blocks/cpu_usage_expand_state)
 
 usage() {
     echo "Usage: $0 [--icon|-i] [--temp|-t] [--help|-h]"
@@ -28,7 +28,9 @@ if $show_icon; then
     output+=" " # adding an icon to the output
 fi
 
-if $show_use; then
+if $ALL_CORES; then
+    output+=$(top -1bn1 | grep "%Cpu" | awk -F'[:,]' '{for(i=2;i<=NF;i+=8) printf "%.1f%% ", 100-$5; for(i=10;i<=NF;i+=8) printf "%.1f%% ", 100-$12}')
+else
     output+=$(top -bn1 | awk '/Cpu/ { print 100 - $8 "%" }') # extracting the cpu usage from top
 fi
 

@@ -46,12 +46,7 @@ output+="%"
 
 if $show_mem_usage_f; then
     output+=" "
-    mem_usage=$(nvidia-smi --query-gpu=utilization.memory --format=csv,noheader,nounits | awk '{printf "%.1f", $1 / 1024}')
-    if [[ "$mem_usage" == "0.0" ]]; then
-        output+="0"
-    else
-        output+="$mem_usage"
-    fi
+    output+=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | awk '{printf "%.1f", $1 / 1024}')
     output+="/"
     output+=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | awk '{printf "%.1f", $1 / 1024}')
     output+="GiB"
