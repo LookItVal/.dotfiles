@@ -29,7 +29,7 @@ if $show_icon; then
 fi
 
 if $ALL_CORES; then
-    output+=$(top -1bn1 | grep "%Cpu" | awk -F'[:,]' '{for(i=2;i<=NF;i+=8) printf "%.1f%% ", 100-$5; for(i=10;i<=NF;i+=8) printf "%.1f%% ", 100-$12}')
+    output+=$(top -1bn1 -w 200 | grep "%Cpu" | awk -F'[:,]' '{for(i=2;i<=NF;i+=8) printf "%.1f%% ", 100-$5;}')
 else
     output+=$(top -bn1 | awk '/Cpu/ { print 100 - $8 "%" }') # extracting the cpu usage from top
 fi
