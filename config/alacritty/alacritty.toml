@@ -23,3 +23,6 @@ import = [
   "~/.config/alacritty/catppuccin-macchiato.toml"
   # "~/.config/alacritty/catppuccin-mocha.toml"
 ]
+
+[window]
+opacity = 0.95

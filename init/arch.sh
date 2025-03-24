@@ -16,7 +16,7 @@ else
 fi
 
 # Yay
-if [[ $(which yay) == "" ]]; then
+if [[ $(which yay) = "yay not found" ]]; then
   install_yay
 else
   echo Yay installed
@@ -37,14 +37,18 @@ systemctl enable wallpaper.timer
 systemctl start wallpaper.timer
 
 sudo pacman -Syu
-sudo pacman -S --noconfirm exa bat ripgrep fd fzf neovim alacritty i3-wm xorg xorg-xinit xorg-server i3lock i3status rofi pulseaudio pavucontrol firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc thunar thunar-volman ark thunar-archive-plugin gvfs htop nvtop neofetch flameshot
-for pkg in visual-studio-code-bin i3lock-color micromamba nvm spicetify-cli networkmanager-dmenu-git; do
+sudo pacman -S --noconfirm ntp exa bat ripgrep fd fzf neovim alacritty i3-wm picom xorg xorg-xinit xorg-server i3lock i3status rofi pulseaudio pavucontrol firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc thunar thunar-volman ark thunar-archive-plugin gvfs htop nvtop neofetch flameshot
+for pkg in visual-studio-code-bin i3lock-color micromamba nvm spicetify-cli networkmanager-dmenu-git networkmanager-dispatcher-ntpd; do
   if ! yay -Q $pkg &>/dev/null; then
-    yay -S --noconfirm $pkg
+    yay -S --noconfirm --answerclean All --overwrite="*" $pkg
   else
     echo "$pkg is already installed"
   fi
 done
+
+sudo timedatectl set-timezone US/Central
+sudo ntpd-qg
+sudo hwclock --systohc
 
 echo "Would you like to apply the catppuccino theme to Spotify? (y/n)"
 read -r response
