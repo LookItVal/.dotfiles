@@ -1,3 +1,9 @@
 [user]
 	email = 86853474+LookItVal@users.noreply.github.com
 	name = Quinn Valencia Cecil
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential

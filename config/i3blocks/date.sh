@@ -27,7 +27,7 @@ output=""
 if $show_icon; then
     output+="󰸗 "
 fi
-
+B
 output+=$(date "+%B %d")
 
 if $show_year; then
@@ -35,4 +35,4 @@ if $show_year; then
     output+=$(date "+%Y")
 fi
 
-echo "$output"
+echo " $output"

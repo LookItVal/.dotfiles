@@ -46,4 +46,4 @@ if $show_percentage; then
     output+="%"
 fi
 
-echo "$output"
+echo " $output"

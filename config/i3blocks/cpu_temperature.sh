@@ -25,12 +25,17 @@ done
 temp=$(sensors | awk '/^Package id 0/ {print substr($4, 2, 2)}')
 icon=""
 color=\#181926
-if [[ $temp -ge 80 ]]; then
+if [[ $temp -ge 90 ]]; then
     icon=""
-    color=\#d20f39
+    color\#d20f39
+elif [[ $temp -ge 85 ]]; then
+    icon=""
+    color=\#e64553
+elif [[ $temp -ge 80 ]]; then
+    icon=""
+    color=\#fe640b
 elif [[ $temp -ge 70 ]]; then
     icon=""
-    color=\#e64553
 elif [[ $temp -ge 65 ]]; then
     icon=""
     color=\#fe640b

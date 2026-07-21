@@ -77,4 +77,4 @@ if $show_seconds; then
     output+=$(date "+%S")
 fi
 
-echo "$output"
+echo " $output"

@@ -34,4 +34,4 @@ else
     output+=$(top -bn1 | awk '/Cpu/ { print 100 - $8 "%" }') # extracting the cpu usage from top
 fi
 
-echo "$output"
+echo " $output"

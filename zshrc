@@ -77,3 +77,6 @@ if [ $os != "arch" ]; then
 fi
 
 eval "$(micromamba shell hook --shell zsh)"
+
+
+

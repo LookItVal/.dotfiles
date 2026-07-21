@@ -1,5 +1,5 @@
 [separator]
-command=echo $'\uE0B2'
+command=echo $'\uE0BA'
 interval=once
 LABEL=SEP
 separator=false
@@ -27,7 +27,7 @@ color=#181926
 background=#c6a0f6
 
 [separator]
-command=echo $'\uE0B2'
+command=echo $' \uE0BA'
 interval=once
 LABEL=SEP
 separator=false
@@ -54,7 +54,7 @@ color=#181926
 background=#8aadf4
 
 [separator]
-command=echo $'\uE0B2'
+command=echo $' \uE0BA'
 interval=once
 LABEL=SEP
 separator=false
@@ -72,7 +72,7 @@ color=#181926
 background=#a6da95
 
 [separator]
-command=echo $'\uE0B2'
+command=echo $' \uE0BA'
 interval=once
 LABEL=SEP
 separator=false
@@ -90,7 +90,7 @@ color=#181926
 background=#eed49f
 
 [separator]
-command=echo $'\uE0B2'
+command=echo $' \uE0BA'
 interval=once
 LABEL=SEP
 separator=false
@@ -108,7 +108,7 @@ color=#181926
 background=#f5a97f
 
 [separator]
-command=echo $'\uE0B2'
+command=echo $' \uE0BA'
 interval=once
 LABEL=SEP
 separator=false
@@ -126,7 +126,7 @@ color=#181926
 background=#ed8796
 
 [separator]
-command=echo $'\uE0B2'
+command=echo $' \uE0BA'
 interval=once
 LABEL=SEP
 separator=false
@@ -135,10 +135,28 @@ background=#ed8796
 color=#c6a0f6
 
 [power]
-full_text=⏻ 
+full_text=" ⏻ "
 command=$HOME/.config/i3blocks/shutdown_menu.sh -p rofi
 LABEL=POWER
 separator=false
 separator_block_width=0
 color=#181926
 background=#c6a0f6
+
+[separator]
+command=echo $' \uE0BA'
+interval=once
+LABEL=SEP
+separator=false
+separator_block_width=0
+background=#c6a0f6
+color=#1e2030
+
+[battery]
+command=$HOME/.config/i3blocks/battery.sh -p
+interval=10
+LABEL=BATTERY
+separator=false
+separator_block_width=0
+color=#cad3f5
+background=#1e2030

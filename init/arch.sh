@@ -16,7 +16,7 @@ else
 fi
 
 # Yay
-if [[ $(which yay) = "yay not found" ]]; then
+if ! command -v yay &> /dev/null; then
   install_yay
 else
   echo Yay installed
@@ -37,7 +37,7 @@ systemctl enable wallpaper.timer
 systemctl start wallpaper.timer
 
 sudo pacman -Syu
-sudo pacman -S --noconfirm ntp exa bat ripgrep fd fzf neovim alacritty i3-wm picom xorg xorg-xinit xorg-server i3lock i3status rofi pulseaudio pavucontrol firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc thunar thunar-volman ark thunar-archive-plugin gvfs htop nvtop neofetch flameshot
+sudo pacman -S --noconfirm ntp exa bat ripgrep fd fzf neovim alacritty i3-wm picom xorg xorg-xinit xorg-server i3lock i3status rofi pulseaudio pavucontrol firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc thunar thunar-volman ark thunar-archive-plugin gvfs htop nvtop flameshot
 for pkg in visual-studio-code-bin i3lock-color micromamba nvm spicetify-cli networkmanager-dmenu-git networkmanager-dispatcher-ntpd; do
   if ! yay -Q $pkg &>/dev/null; then
     yay -S --noconfirm --answerclean All --overwrite="*" $pkg
@@ -49,6 +49,20 @@ done
 sudo timedatectl set-timezone US/Central
 sudo ntpd-qg
 sudo hwclock --systohc
+
+echo "Installing Grub Theme..."
+git clone https://github.com/catppuccin/grub.git && cd grub
+sudo cp -r src/* /usr/share/grub/themes/
+FLAVOR="macchiato"
+THEME_PATH="/usr/share/grub/themes/catppuccin-${FLAVOR}-grub-theme/theme.txt"
+GRUB_CONFIG="/etc/default/grub".
+NEW_LINE="GRUB_THEME=\"${THEME_PATH}\""
+if grep -q "^#\?\s*GRUB_THEME=" "$GRUB_CONFIG"; then
+  sudo sed -i "s|^#\?\s*GRUB_THEME=.*|${NEW_LINE}|" "$GRUB_CONFIG"
+else
+  echo "$NEW_LINE" | sudo tee -a "$GRUB_CONFIG" > /dev/null
+fi
+sudo grub-mkconfig -o /boot/grub/grub.cfg
 
 echo "Would you like to apply the catppuccino theme to Spotify? (y/n)"
 read -r response

@@ -79,6 +79,10 @@ bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT
 bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
 bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
 
+# Use brightnessctl to adjust screen brightness
+bindsym XF86MonBrightnessUp exec --no-startup-id brightnessctl set +5%
+bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 5%-
+
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
 
@@ -228,7 +232,7 @@ bindsym $mod+r mode "resize"
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
 bar {
-        font pango:FiraCode Nerd Font 10
+        font pango:FiraCode Nerd Font 14
         status_command i3blocks
         padding -2px 0
         colors {
@@ -250,3 +254,6 @@ bar {
 exec feh --bg-fill $(find ~/.dotfiles/arch/wallpapers -type f | shuf -n 1)
 exec i3lock -b --image=$(find ~/.dotfiles/arch/wallpapers -type f | shuf -n 1) -F --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""
 exec_always picom -bcf --no-fading-openclose --shadow-exclude 'class_g = "wbar"' --unredir-if-possible --experimental-backends
+exec --no-startup-id dunst
+exec --no-startup-id autorandr --change --default single
+exec_always --no-startup-id xbindkeys

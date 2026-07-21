@@ -28,16 +28,68 @@ done
 
 output=""
 
+# ----------------------------------------------------------------
+# Data Gathering
+# ----------------------------------------------------------------
+# Get the active interface type and profile name
+DATA=$(nmcli -t -f TYPE,CONNECTION device | grep -E '^(wifi|ethernet):' | head -n 1)
+IFACE_TYPE=$(echo "$DATA" | cut -d':' -f1)
+CONN_NAME=$(echo "$DATA" | cut -d':' -f2)
+
+# ----------------------------------------------------------------
+# Icon Section
+# ----------------------------------------------------------------
 if $show_icon; then
-    output+="󰣺 " #TODO CHANGE THIS MAKE THIS DYNAMIC
+    case "$IFACE_TYPE" in
+        ethernet)
+            output+=" " # Wired/Ethernet icon
+            ;;
+        wifi)
+            # Query the current Wi-Fi network signal strength (0-100)
+            SIGNAL=$(nmcli -t -f IN-USE,SIGNAL dev wifi | awk -F: '$1 == "*" {print $2; exit}')
+            
+            # Fallback if signal query returns blank
+            if [[ -z "$SIGNAL" ]]; then
+                output+="󰣻 " # Wi-Fi disconnected / searching
+            elif (( SIGNAL > 75 )); then
+                output+="󰣺 " # Excellent Signal (4 bars)
+            elif (( SIGNAL > 50 )); then
+                output+="󰣸 " # Good Signal (3 bars)
+            elif (( SIGNAL > 25 )); then
+                output+="󰣶 " # Fair Signal (2 bars)
+            else
+                output+="󰣴 " # Weak Signal (1 bar)
+            fi
+            ;;
+        *)
+            output+="󰣽 " # Global Disconnected Icon
+            ;;
+    esac
 fi
 
+# ----------------------------------------------------------------
+# Network Name Section
+# ----------------------------------------------------------------
 if $show_network; then
-    output+="$(nmcli -t -f NAME c show --active | head -n 1)"
+    case "$IFACE_TYPE" in
+        wifi)     output+="$CONN_NAME" ;;
+        ethernet) output+="Ethernet" ;;
+        *)        output+="Disconnected" ;;
+    esac
 fi
 
+# ----------------------------------------------------------------
+# IP Address Section
+# ----------------------------------------------------------------
 if $show_ip; then
-    output+=" $(nmcli -p device show | awk '/IP4.ADDRESS/ { print $2 }')"
+    IP_ADDR=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
+    
+    if [[ -n "$IP_ADDR" ]]; then
+        # Add a spacing separator if icon or network name text was already added
+        [[ -n "$output" ]] && output+=" | "
+        output+="$IP_ADDR"
+    fi
 fi
 
-echo "$output"
+# Trim any remaining terminal spaces and output a single clean line
+echo "$output" | xargs

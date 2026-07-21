@@ -26,7 +26,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-if ! nvidia-smi | grep -q "Driver Version:"; then
+if ! nvidia-smi | grep -q "KMD Version:"; then
     if $show_icon; then
         echo "󰢮 GPU ERROR"
     else
@@ -61,4 +61,4 @@ if $show_mem_usage_p; then
     output+="%"
 fi
 
-echo "$output"
+echo " $output"
