@@ -135,7 +135,7 @@ background=#ed8796
 color=#c6a0f6
 
 [power]
-full_text=" ⏻ "
+full_text=" ⏻  "
 command=$HOME/.config/i3blocks/shutdown_menu.sh -p rofi
 LABEL=POWER
 separator=false
