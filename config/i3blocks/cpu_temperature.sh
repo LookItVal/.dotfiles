@@ -38,7 +38,6 @@ elif [[ $temp -ge 70 ]]; then
     icon=""
 elif [[ $temp -ge 65 ]]; then
     icon=""
-    color=\#fe640b
 elif [[ $temp -le 30 ]]; then
     icon=""
     color=\#1e66f5
