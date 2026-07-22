@@ -1,64 +1,52 @@
 #!/bin/zsh
 
-show_icon=false
-show_mem_usage_p=false
-show_mem_usage_f=false
+STATE_FILE="$HOME/.config/i3blocks/.toggle_gpu_usage"
+button="${BLOCK_BUTTON:-$button}"
 
-usage() {
-    echo "Usage: $0 [--icon|-i] [--mem-usage-p|-m] [--mem-usage-f|-M] [--help|-h]"
-    echo "Prints the percentage of GPU usage. Requires nvidia-smi."
-    echo "Options:"
-    echo "  --icon, -i         Include an icon in the output."
-    echo "  --mem-usage-p, -m    Include the GPU memory usage as a percent in the output."
-    echo "  --mem-usage-f, -M    Include the GPU memory usage as a fraction in the output."
-    echo "  --help, -h         Display this help message."
-    exit 1
-}
-
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        --icon|-i) show_icon=true ;;
-        --mem-usage-p|-m) show_mem_usage_p=true ;;
-        --mem-usage-f|-M) show_mem_usage_f=true ;;
-        --help|-h) usage ;;
-        *) usage ;;
-    esac
-    shift
-done
-
-if ! nvidia-smi | grep -q "KMD Version:"; then
-    if $show_icon; then
-        echo "󰢮 GPU ERROR"
-    else
-        echo "GPU ERROR"
+# 0: icon only, 1: icon + GPU usage, 2: icon + GPU usage + VRAM usage
+state=2
+if [[ -f "$STATE_FILE" ]]; then
+    saved_state=$(<"$STATE_FILE")
+    if [[ "$saved_state" =~ '^[0-2]$' ]]; then
+        state=$saved_state
     fi
-    exit 1
 fi
 
-output=""
-
-if $show_icon; then
-    output+="󰢮 "
+if [[ -n "$button" ]]; then
+    state=$(( (state + 1) % 3 ))
+    print -r -- "$state" >| "$STATE_FILE"
 fi
 
-output+=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | awk '{print $1}')
-output+="%"
+icon="󰢮"
+output="$icon"
 
-if $show_mem_usage_f; then
-    output+=" "
-    output+=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | awk '{printf "%.1f", $1 / 1024}')
-    output+="/"
-    output+=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | awk '{printf "%.1f", $1 / 1024}')
-    output+="GiB"
-fi
-    
-
-if $show_mem_usage_p; then
-    output+=" "
-    gpu_mem_usage=$(nvidia-smi --query-gpu=utilization.memory --format=csv,noheader,nounits | awk '{print $1}')
-    gpu_mem_total=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | awk '{print $1}')
-    output+=$(($gpu_mem_usage / $gpu_mem_total))
-    output+="%"
+if ! command -v nvidia-smi >/dev/null 2>&1; then
+    if [[ $state -ne 0 ]]; then
+        output+=" N/A"
+    fi
+    echo " $output"
+    exit 0
 fi
 
-echo " $output"
+gpu_data=$(nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits 2>/dev/null | head -n 1)
+if [[ -z "$gpu_data" ]]; then
+    if [[ $state -ne 0 ]]; then
+        output+=" N/A"
+    fi
+    echo " $output"
+    exit 0
+fi
+
+gpu_util=$(echo "$gpu_data" | awk -F', *' '{print $1 + 0}')
+mem_used_mib=$(echo "$gpu_data" | awk -F', *' '{print $2 + 0}')
+mem_total_mib=$(echo "$gpu_data" | awk -F', *' '{print $3 + 0}')
+
+if [[ $state -eq 1 ]]; then
+    output+=" ${gpu_util}%"
+elif [[ $state -eq 2 ]]; then
+    mem_used_gib=$(awk -v v="$mem_used_mib" 'BEGIN { printf "%.1f", v / 1024 }')
+    mem_total_gib=$(awk -v v="$mem_total_mib" 'BEGIN { printf "%.1f", v / 1024 }')
+    output+=" ${gpu_util}% ${mem_used_gib}/${mem_total_gib}GiB"
+fi
+
+echo " $output  "

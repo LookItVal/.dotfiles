@@ -1,13 +1,11 @@
 #!/bin/zsh
 
-show_icon=false
 show_year=false
 
 usage() {
-    echo "Usage: $0 [--icon|-i] [--year|-y] [--help|-h]"
+    echo "Usage: $0 [--year|-y] [--help|-h]"
     echo "Prints the percentage of CPU usage."
     echo "Options:"
-    echo "  --icon, -i    Include an icon in the output."
     echo "  --year, -y    Include the year in the output."
     echo "  --help, -h    Display this help message."
     exit 1
@@ -15,7 +13,6 @@ usage() {
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        --icon|-i) show_icon=true ;;
         --year|-y) show_year=true ;;
         --help|-h) usage ;;
         *) usage ;;
@@ -23,16 +20,33 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
+STATE_FILE="$HOME/.config/i3blocks/.toggle_date"
+button="${BLOCK_BUTTON:-$button}"
+
+# 0: icon only, 1: icon + date
+state=1
+if [[ -f "$STATE_FILE" ]]; then
+    saved_state=$(<"$STATE_FILE")
+    if [[ "$saved_state" =~ '^[0-1]$' ]]; then
+        state=$saved_state
+    fi
+fi
+
+if [[ -n "$button" ]]; then
+    state=$(( (state + 1) % 2 ))
+    print -r -- "$state" >| "$STATE_FILE"
+fi
+
 output=""
-if $show_icon; then
-    output+="󰸗 "
-fi
-B
-output+=$(date "+%B %d")
+output+="󰸗"
 
-if $show_year; then
+if [[ $state -eq 1 ]]; then
     output+=" "
-    output+=$(date "+%Y")
+    output+=$(date "+%B %d")
+    if $show_year; then
+        output+=" "
+        output+=$(date "+%Y")
+    fi
 fi
 
-echo " $output"
+echo " $output  "

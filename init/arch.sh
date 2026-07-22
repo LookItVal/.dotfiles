@@ -37,7 +37,7 @@ systemctl enable wallpaper.timer
 systemctl start wallpaper.timer
 
 sudo pacman -Syu
-sudo pacman -S --noconfirm ntp exa bat ripgrep fd fzf neovim alacritty i3-wm picom xorg xorg-xinit xorg-server i3lock i3status rofi pulseaudio pavucontrol firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc thunar thunar-volman ark thunar-archive-plugin gvfs htop nvtop flameshot
+sudo pacman -S --noconfirm ntp exa bat ripgrep fd fzf neovim alacritty i3-wm picom xorg xorg-xinit xorg-server i3status rofi pulseaudio pavucontrol firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc thunar thunar-volman ark thunar-archive-plugin gvfs htop nvtop flameshot
 for pkg in visual-studio-code-bin i3lock-color micromamba nvm spicetify-cli networkmanager-dmenu-git networkmanager-dispatcher-ntpd; do
   if ! yay -Q $pkg &>/dev/null; then
     yay -S --noconfirm --answerclean All --overwrite="*" $pkg

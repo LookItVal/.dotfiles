@@ -1,95 +1,71 @@
 #!/bin/zsh
 
-show_icon=false
-show_network=false
-show_ip=false
+STATE_FILE="$HOME/.config/i3blocks/.toggle_network"
+button="${BLOCK_BUTTON:-$button}"
 
-usage() {
-    echo "Usage: $0 [--icon|-i] [--network|-n] [--ip|-I] [--help|-h]"
-    echo "Prints the network usage."
-    echo "Options:"
-    echo "  --icon, -i    Include an icon in the output."
-    echo "  --network, -n Include the network name in the output."
-    echo "  --ip, -I      Include the IP address in the output."
-    echo "  --help, -h    Display this help message."
-    exit 1
-}
-
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        --icon|-i) show_icon=true ;;
-        --network|-n) show_network=true ;;
-        --ip|-I) show_ip=true ;;
-        --help|-h) usage ;;
-        *) usage ;;
-    esac
-    shift
-done
-
-output=""
-
-# ----------------------------------------------------------------
-# Data Gathering
-# ----------------------------------------------------------------
-# Get the active interface type and profile name
-DATA=$(nmcli -t -f TYPE,CONNECTION device | grep -E '^(wifi|ethernet):' | head -n 1)
-IFACE_TYPE=$(echo "$DATA" | cut -d':' -f1)
-CONN_NAME=$(echo "$DATA" | cut -d':' -f2)
-
-# ----------------------------------------------------------------
-# Icon Section
-# ----------------------------------------------------------------
-if $show_icon; then
-    case "$IFACE_TYPE" in
-        ethernet)
-            output+=" " # Wired/Ethernet icon
-            ;;
-        wifi)
-            # Query the current Wi-Fi network signal strength (0-100)
-            SIGNAL=$(nmcli -t -f IN-USE,SIGNAL dev wifi | awk -F: '$1 == "*" {print $2; exit}')
-            
-            # Fallback if signal query returns blank
-            if [[ -z "$SIGNAL" ]]; then
-                output+="󰣻 " # Wi-Fi disconnected / searching
-            elif (( SIGNAL > 75 )); then
-                output+="󰣺 " # Excellent Signal (4 bars)
-            elif (( SIGNAL > 50 )); then
-                output+="󰣸 " # Good Signal (3 bars)
-            elif (( SIGNAL > 25 )); then
-                output+="󰣶 " # Fair Signal (2 bars)
-            else
-                output+="󰣴 " # Weak Signal (1 bar)
-            fi
-            ;;
-        *)
-            output+="󰣽 " # Global Disconnected Icon
-            ;;
-    esac
-fi
-
-# ----------------------------------------------------------------
-# Network Name Section
-# ----------------------------------------------------------------
-if $show_network; then
-    case "$IFACE_TYPE" in
-        wifi)     output+="$CONN_NAME" ;;
-        ethernet) output+="Ethernet" ;;
-        *)        output+="Disconnected" ;;
-    esac
-fi
-
-# ----------------------------------------------------------------
-# IP Address Section
-# ----------------------------------------------------------------
-if $show_ip; then
-    IP_ADDR=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
-    
-    if [[ -n "$IP_ADDR" ]]; then
-        # Add a spacing separator if icon or network name text was already added
-        [[ -n "$output" ]] && output+=" | "
-        output+="$IP_ADDR"
+# 0: icon only, 1: icon + network, 2: icon + network + ip, 3: icon + ip
+state=2
+if [[ -f "$STATE_FILE" ]]; then
+    saved_state=$(<"$STATE_FILE")
+    if [[ "$saved_state" =~ '^[0-3]$' ]]; then
+        state=$saved_state
     fi
 fi
 
-# Trim any remaining terminal spaces and output a single clean line
-echo "$output" | xargs
+if [[ -n "$button" ]]; then
+    state=$(( (state + 1) % 4 ))
+    print -r -- "$state" >| "$STATE_FILE"
+fi
+
+if command -v nmcli >/dev/null 2>&1; then
+    data=$(nmcli -t -f DEVICE,TYPE,STATE,CONNECTION device status | awk -F: '$3 == "connected" && ($2 == "wifi" || $2 == "ethernet") { print; exit }')
+else
+    data=""
+fi
+
+iface_type=$(echo "$data" | awk -F: '{print $2}')
+conn_name=$(echo "$data" | awk -F: '{print $4}')
+
+case "$iface_type" in
+    ethernet)
+        icon=""
+        network_name="Ethernet"
+        ;;
+    wifi)
+        signal=$(nmcli -t -f IN-USE,SIGNAL dev wifi 2>/dev/null | awk -F: '$1 == "*" { print $2; exit }')
+        if [[ -z "$signal" ]]; then
+            icon="󰣻"
+        elif (( signal > 75 )); then
+            icon="󰣺"
+        elif (( signal > 50 )); then
+            icon="󰣸"
+        elif (( signal > 25 )); then
+            icon="󰣶"
+        else
+            icon="󰣴"
+        fi
+        network_name="$conn_name"
+        ;;
+    *)
+        icon="󰣽"
+        network_name="Disconnected"
+        ;;
+esac
+
+ip_addr=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
+
+output="$icon"
+if [[ $state -eq 1 ]]; then
+    output+=" $network_name"
+elif [[ $state -eq 2 ]]; then
+    output+=" $network_name"
+    if [[ -n "$ip_addr" ]]; then
+        output+=" | $ip_addr"
+    fi
+elif [[ $state -eq 3 ]]; then
+    if [[ -n "$ip_addr" ]]; then
+        output+=" $ip_addr"
+    fi
+fi
+
+echo "$output  "

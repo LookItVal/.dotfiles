@@ -1,28 +1,29 @@
 #!/bin/zsh
 
-show_icon=false
-show_temp=true
+STATE_FILE="$HOME/.config/i3blocks/.toggle_gpu_temp"
+button="${BLOCK_BUTTON:-$button}"
 
-usage() {
-    echo "Usage: $0 [--icon|-i] [--temp|-t] [--help|-h]"
-    echo "Prints the GPU temperature."
-    echo "Options:"
-    echo "  --icon, -i    Include an icon in the output."
-    echo "  --temp, -t    Include the CPU temperature in the output."
-    echo "  --help, -h    Display this help message."
-    exit 1
-}
+# 0: icon only, 1: icon + temperature
+state=1
+if [[ -f "$STATE_FILE" ]]; then
+    saved_state=$(<"$STATE_FILE")
+    if [[ "$saved_state" =~ '^[0-1]$' ]]; then
+        state=$saved_state
+    fi
+fi
 
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        --icon|-i) show_icon=true ;;
-        --help|-h) usage ;;
-        *) usage ;;
-    esac
-    shift
-done
+if [[ -n "$button" ]]; then
+    state=$(( (state + 1) % 2 ))
+    print -r -- "$state" >| "$STATE_FILE"
+fi
 
-temp=$(nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits)
+if command -v nvidia-smi >/dev/null 2>&1; then
+    temp=$(nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits 2>/dev/null | head -n 1)
+else
+    temp=""
+fi
+[[ -z "$temp" ]] && temp=0
+
 icon=""
 color=\#181926
 if [[ $temp -ge 80 ]]; then
@@ -39,12 +40,9 @@ elif [[ $temp -le 30 ]]; then
     color=\#1e66f5
 fi
 output=" "
-
-if $show_icon; then
-    output+="$icon "
-fi
-
-if $show_temp; then
+output+="$icon"
+if [[ $state -eq 1 ]]; then
+    output+=" "
     output+="$temp°C"
 fi
 

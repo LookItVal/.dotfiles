@@ -1,33 +1,49 @@
 #!/bin/zsh
 
-show_icon=false
-show_temp=true
+STATE_FILE="$HOME/.config/i3blocks/.toggle_cpu_temp"
+button="${BLOCK_BUTTON:-$button}"
 
-usage() {
-    echo "Usage: $0 [--icon|-i] [--temp|-t] [--help|-h]"
-    echo "Prints the CPU temperature."
-    echo "Options:"
-    echo "  --icon, -i    Include an icon in the output."
-    echo "  --temp, -t    Include the CPU temperature in the output."
-    echo "  --help, -h    Display this help message."
-    exit 1
+# 0: icon only, 1: icon + temperature
+state=1
+if [[ -f "$STATE_FILE" ]]; then
+    saved_state=$(<"$STATE_FILE")
+    if [[ "$saved_state" =~ '^[0-1]$' ]]; then
+        state=$saved_state
+    fi
+fi
+
+if [[ -n "$button" ]]; then
+    state=$(( (state + 1) % 2 ))
+    print -r -- "$state" >| "$STATE_FILE"
+fi
+
+temp=$(sensors 2>/dev/null | awk '
+/^Package id 0:/ {
+    value=$4
+    gsub(/\+|°C/, "", value)
+    printf "%d", value + 0
+    exit
 }
+/^Tctl:/ {
+    value=$2
+    gsub(/\+|°C/, "", value)
+    printf "%d", value + 0
+    exit
+}
+/^Tdie:/ {
+    value=$2
+    gsub(/\+|°C/, "", value)
+    printf "%d", value + 0
+    exit
+}
+')
+[[ -z "$temp" ]] && temp=0
 
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        --icon|-i) show_icon=true ;;
-        --help|-h) usage ;;
-        *) usage ;;
-    esac
-    shift
-done
-
-temp=$(sensors | awk '/^Package id 0/ {print substr($4, 2, 2)}')
 icon=""
 color=\#181926
 if [[ $temp -ge 90 ]]; then
     icon=""
-    color\#d20f39
+    color=\#d20f39
 elif [[ $temp -ge 85 ]]; then
     icon=""
     color=\#e64553
@@ -43,12 +59,9 @@ elif [[ $temp -le 30 ]]; then
     color=\#1e66f5
 fi
 output=" "
-
-if $show_icon; then
-    output+="$icon "
-fi
-
-if $show_temp; then
+output+="$icon"
+if [[ $state -eq 1 ]]; then
+    output+=" "
     output+="$temp°C"
 fi
 

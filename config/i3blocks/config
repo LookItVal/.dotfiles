@@ -8,7 +8,7 @@ color=#c6a0f6
 background=#1e2030
 
 [cpu_usage]
-command=if [ $button ]; then sh $HOME/.config/i3blocks/cpu_usage_expand.sh; else sh $HOME/.config/i3blocks/cpu_usage.sh -i; fi
+command=$HOME/.config/i3blocks/cpu_usage.sh
 interval=5
 LABEL=CPU 
 background=
@@ -18,7 +18,7 @@ color=#181926
 background=#c6a0f6
 
 [cpu_temp]
-command=$HOME/.config/i3blocks/cpu_temperature.sh -i
+command=$HOME/.config/i3blocks/cpu_temperature.sh
 interval=5
 LABEL=TEMP
 separator=false
@@ -36,7 +36,7 @@ color=#8aadf4
 background=#c6a0f6
 
 [gpu_usage]
-command=$HOME/.config/i3blocks/gpu_usage.sh -i -M
+command=$HOME/.config/i3blocks/gpu_usage.sh
 interval=5
 LABEL=GPU 
 separator=false
@@ -45,7 +45,7 @@ color=#181926
 background=#8aadf4
 
 [gpu_temp]
-command=$HOME/.config/i3blocks/gpu_temperature.sh -i
+command=$HOME/.config/i3blocks/gpu_temperature.sh
 interval=5
 LABEL=GTEMP
 separator=false
@@ -63,7 +63,7 @@ color=#a6da95
 background=#8aadf4
 
 [memory]
-command=$HOME/.config/i3blocks/memory.sh -i -f
+command=$HOME/.config/i3blocks/memory.sh
 interval=5
 LABEL=MEM
 separator=false
@@ -81,7 +81,7 @@ color=#eed49f
 background=#a6da95
 
 [network]
-command=$HOME/.config/i3blocks/network.sh -i -n -I
+command=$HOME/.config/i3blocks/network.sh
 interval=5
 LABEL=NET
 separator=false
@@ -99,7 +99,7 @@ background=#eed49f
 color=#f5a97f
 
 [time]
-command=$HOME/.config/i3blocks/time.sh -i -H -s
+command=$HOME/.config/i3blocks/time.sh -H -s
 interval=1
 LABEL=TIME
 separator=false
@@ -117,7 +117,7 @@ background=#f5a97f
 color=#ed8796
 
 [date]
-command=$HOME/.config/i3blocks/date.sh -i -y
+command=$HOME/.config/i3blocks/date.sh -y
 interval=60
 LABEL=DATE
 separator=false
@@ -154,7 +154,7 @@ color=#1e2030
 
 [battery]
 command=$HOME/.config/i3blocks/battery.sh -p
-interval=10
+interval=1
 LABEL=BATTERY
 separator=false
 separator_block_width=0
