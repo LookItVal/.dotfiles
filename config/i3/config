@@ -78,14 +78,13 @@ exec --no-startup-id nm-applet
 
 # Use pactl to adjust volume in PulseAudio.
 set $refresh_i3status killall -SIGUSR1 i3status
-bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
-bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
-bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
-bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+bindsym XF86AudioRaiseVolume exec --no-startup-id /home/val/.config/i3/volume-change.sh up
+bindsym XF86AudioLowerVolume exec --no-startup-id /home/val/.config/i3/volume-change.sh down
+bindsym XF86AudioMute exec --no-startup-id /home/val/.config/i3/volume-change.sh mute
 
 # Use brightnessctl to adjust screen brightness
-bindsym XF86MonBrightnessUp exec --no-startup-id brightnessctl set +5%
-bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 5%-
+bindsym XF86MonBrightnessUp exec --no-startup-id /home/val/.config/i3/brightness-change.sh up
+bindsym XF86MonBrightnessDown exec --no-startup-id /home/val/.config/i3/brightness-change.sh down
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
@@ -209,7 +208,7 @@ workspace 10 output HDMI-1-0
 
 # Lock Screen
 bindsym $mod+Escape exec $locker
-
+bindsym $mod+Shift+Escape exec i3lock -b -B 5 --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""
 
 # reload the configuration file
 bindsym $mod+Shift+c reload

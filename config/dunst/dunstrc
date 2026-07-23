@@ -1,0 +1,31 @@
+[global]
+    font = Fira Mono 12
+    # Enable progress bars
+    progress_bar = true
+    progress_bar_height = 8
+    progress_bar_min_width = 150
+    progress_bar_max_width = 300
+    progress_bar_frame_width = 1
+
+    # Optional: Highlight color for the filled part of the progress bar
+    # (Matches Catppuccin Blue #89b4fa in Mocha)
+    highlight = "#c6a0f6"
+
+[urgency_low]
+    background = "#363a4f"
+    foreground = "#cad3f5"
+    frame_color = "#b7bdf8"
+    timeout = 10
+
+[urgency_normal]
+    background = "#363a4f"
+    foreground = "#cad3f5"
+    frame_color = "#c6a0f6"
+    timeout = 10
+
+[urgency_critical]
+    background = "#363a4f"
+    foreground = "#cad3f5"
+    frame_color = "#ed8796"
+    timeout = 0
+    format = "<span weight='bold' size='110%' foreground='#ed8796'>%s</span>\n%b"
