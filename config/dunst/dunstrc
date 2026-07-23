@@ -10,6 +10,8 @@
     # Optional: Highlight color for the filled part of the progress bar
     # (Matches Catppuccin Blue #89b4fa in Mocha)
     highlight = "#c6a0f6"
+    
+    script = ~/.config/dunst/dunst-sound.sh
 
 [urgency_low]
     background = "#363a4f"
