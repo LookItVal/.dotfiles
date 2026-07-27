@@ -2,5 +2,6 @@
 .toggle_*
 .battery_history.csv
 .battery_history_prune_ts
+.battery_notified_low
 .battery_power_window_*.csv
 cpu_usage_expand_state

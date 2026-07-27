@@ -313,6 +313,26 @@ main() {
     eta_sec=$(printf "%s" "$eta_payload" | cut -d'|' -f2)
     icon=$(battery_icon "$status" "$capacity")
 
+    # --- Low Battery Notification Guard ---
+    local NOTIFY_FLAG_FILE="$STATE_DIR/.battery_notified_low"
+
+    if [[ "$status" == "Discharging" && "$capacity" -lt 15 ]]; then
+        # Only notify if we haven't already sent a alert for this discharge cycle
+        if [[ ! -f "$NOTIFY_FLAG_FILE" ]]; then
+            notify-send -u critical \
+                -h string:x-dunst-stack-tag:battery_low \
+                "󰂃 Low Battery Warning" \
+                "Battery is at ${capacity}%. Plug in your charger!" \
+                -t 5000
+            
+            # Create flag so it doesn't trigger again every second
+            touch "$NOTIFY_FLAG_FILE"
+        fi
+    else
+        # Reset the flag whenever charging or back above 15%
+        rm -f "$NOTIFY_FLAG_FILE" 2>/dev/null
+    fi
+
     printf "%s|%s|%s|%s|%s\n" "$icon" "$capacity" "$status" "$eta" "$eta_sec"
 }
 

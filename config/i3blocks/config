@@ -99,7 +99,7 @@ background=#eed49f
 color=#f5a97f
 
 [time]
-command=$HOME/.config/i3blocks/time.sh -H -s
+command=$HOME/.config/i3blocks/time.sh -s
 interval=1
 LABEL=TIME
 separator=false
