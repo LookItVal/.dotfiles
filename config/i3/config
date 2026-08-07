@@ -293,6 +293,14 @@ bindsym $mod+Ctrl+s exec --no-startup-id ~/.config/i3/take-ss screen file
 bindsym $mod+Mod1+s exec --no-startup-id QT_USE_PORTAL=1 flameshot gui
 
 # -----------------------------------------------------------------------------
+# SCREEN RECORDING
+# -----------------------------------------------------------------------------
+bindsym $mod+Mod1+r exec --no-startup-id ~/.config/i3/record-screen window
+bindsym $mod+Mod1+x exec --no-startup-id ~/.config/i3/record-screen stop
+bindsym $mod+Mod1+Shift+r exec --no-startup-id ~/.config/i3/record-screen screen
+bindsym $mod+Mod1+Shift+x exec --no-startup-id ~/.config/i3/record-screen stop
+
+# -----------------------------------------------------------------------------
 # SAVE TO CLIPBOARD ONLY
 # -----------------------------------------------------------------------------
 bindsym $mod+Shift+s exec --no-startup-id ~/.config/i3/take-ss window clip

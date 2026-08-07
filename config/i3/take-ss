@@ -6,6 +6,46 @@ ACTION="$2"   # "file" or "clip"
 DIR="$HOME/Pictures/Screenshots"
 FILE="$DIR/$(date +%Y-%m-%d_%H-%M-%S).png"
 
+open_saved_file() {
+    local file_path="$1"
+    local mime_type
+
+    mime_type="$(file --mime-type -Lb "$file_path" 2>/dev/null || true)"
+
+    case "$mime_type" in
+        image/*)
+            if command -v firefox >/dev/null 2>&1; then
+                firefox "$file_path" >/dev/null 2>&1 &
+            else
+                xdg-open "$file_path" >/dev/null 2>&1 &
+            fi
+            ;;
+        video/*)
+            if command -v firefox >/dev/null 2>&1; then
+                firefox "$file_path" >/dev/null 2>&1 &
+            else
+                xdg-open "$file_path" >/dev/null 2>&1 &
+            fi
+            ;;
+        *)
+            xdg-open "$file_path" >/dev/null 2>&1 &
+            ;;
+    esac
+}
+
+notify_saved_file() {
+    local summary="$1"
+    local body="$2"
+    local file_path="$3"
+
+    (
+        action="$(notify-send --action=open=Open --wait "$summary" "$body" 2>/dev/null || true)"
+        if [ "$action" = "open" ]; then
+            open_saved_file "$file_path"
+        fi
+    ) >/dev/null 2>&1 &
+}
+
 # Determine target geometry & description name
 if [ "$TARGET" = "window" ]; then
     WIN_ID=$(xdotool getactivewindow 2>/dev/null)
@@ -52,7 +92,7 @@ fi
 # Execute capture and send detailed notification
 if [ "$ACTION" = "file" ]; then
     mkdir -p "$DIR"
-    maim "${MAIM_ARGS[@]}" "$FILE" && notify-send "Screenshot of $LABEL Saved" "Saved screenshot of $LABEL to $FILE"
+    maim "${MAIM_ARGS[@]}" "$FILE" && notify_saved_file "Screenshot of $LABEL Saved" "Saved screenshot of $LABEL to $FILE" "$FILE"
 else
     maim "${MAIM_ARGS[@]}" | xclip -selection clipboard -t image/png && notify-send "Screenshot of $LABEL Copied" "Copied screenshot of $LABEL to clipboard"
 fi
