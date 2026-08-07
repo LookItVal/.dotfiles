@@ -45,6 +45,7 @@ export VISUAL=nvim
 
 # general aliases
 alias pls='sudo $(fc -ln -1)'
+alias neofetch='fastfetch --config ~/.config/fastfetch/config.jsonc'
 
 # get os
 os=$(uname -s)

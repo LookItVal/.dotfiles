@@ -37,7 +37,7 @@ systemctl enable wallpaper.timer
 systemctl start wallpaper.timer
 
 sudo pacman -Syu
-sudo pacman -S --noconfirm ntp exa bat ripgrep fd fzf neovim alacritty i3-wm picom xorg xorg-xinit xorg-server i3status rofi pipewire pipewire-pulse firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc thunar thunar-volman xarchiver zip unzip 7zip unrar p7zip thunar-archive-plugin gvfs htop nvtop flameshot dunst xclip xsel xdg-desktop-portal xdg-desktop-portal-gtk maim xdotool papirus-icon-theme bluez bluez-utils bluetui
+sudo pacman -S --noconfirm ntp exa bat ripgrep fd fzf neovim alacritty i3-wm picom xorg xorg-xinit xorg-server i3status rofi pipewire pipewire-pulse firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc thunar thunar-volman xarchiver zip unzip 7zip unrar p7zip thunar-archive-plugin gvfs htop nvtop flameshot dunst xclip xsel xdg-desktop-portal xdg-desktop-portal-gtk maim xdotool papirus-icon-theme bluez bluez-utils bluetui fastfetch
 for pkg in visual-studio-code-bin i3lock-color nvm spicetify-cli networkmanager-dmenu-git networkmanager-dispatcher-ntpd pwvucontrol catppuccin-gtk-theme-macchiato papirus-folder-catppuccin-git; do
   if ! yay -Q $pkg &>/dev/null; then
     yay -S --noconfirm --answerclean All --overwrite="*" $pkg

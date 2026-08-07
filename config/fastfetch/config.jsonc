@@ -1,0 +1,123 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+  "logo": {
+    "type": "file",
+    "source": "~/.config/fastfetch/arch-ascii.txt",
+    "color": {
+      "1": "#7dc4e4",
+      "2": "#f5bde6",
+      "3": "#cad3f5"
+    },
+    "padding": {
+      "right": 4
+    }
+  },
+  "display": {
+    "separator": " ",
+    "key": {
+      "type": "string"
+    },
+    "size": {
+      "binaryPrefix": "iec",
+      "maxPrefix": "GB",
+      "ndigits": 2
+    }
+  },
+  "modules": [
+    "title",
+    "separator",
+    {
+      "type": "break"
+    },
+    {
+      "type": "os",
+      "key": " OS",
+      "keyColor": "#8aadf4",
+      "format": "{pretty-name}"
+    },
+    {
+      "type": "kernel",
+      "key": "├─",
+      "keyColor": "#8aadf4",
+      "format": "{release}"
+    },
+    {
+      "type": "packages",
+      "key": "├─",
+      "keyColor": "#8aadf4",
+      "combined": false
+    },
+    {
+      "type": "shell",
+      "key": "└─",
+      "keyColor": "#8aadf4",
+      "format": "{pretty-name} {version}"
+    },
+    {
+      "type": "break"
+    },
+    {
+      "type": "wm",
+      "key": " Window Manager",
+      "keyColor": "#f5bde6",
+      "format": "{pretty-name}"
+    },
+    {
+      "type": "custom",
+      "key": "├─󰔎",
+      "keyColor": "#f5bde6",
+      "format": "Catppuccin Macchiato"
+    },
+    {
+      "type": "icons",
+      "key": "├─",
+      "keyColor": "#f5bde6"
+    },
+    {
+      "type": "custom",
+      "key": "└─",
+      "keyColor": "#f5bde6",
+      "format": "Fira Mono"
+    },
+    {
+      "type": "break"
+    },
+    {
+      "type": "host",
+      "key": " PC",
+      "keyColor": "white",
+      "format": "{name}"
+    },
+    {
+      "type": "cpu",
+      "key": "├─",
+      "keyColor": "white"
+    },
+    {
+      "type": "gpu",
+      "key": "├─󰢮",
+      "keyColor": "white",
+      "hideType": "none"
+    },
+    {
+      "type": "memory",
+      "key": "├─",
+      "keyColor": "white",
+      "percent": {
+        "type": 0
+      }
+    },
+    {
+      "type": "uptime",
+      "key": "└─󰔚",
+      "keyColor": "white"
+    },
+    {
+      "type": "break"
+    },
+    {
+      "type": "colors",
+      "symbol": "block"
+    }
+  ]
+}
