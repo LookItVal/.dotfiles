@@ -17,14 +17,15 @@ if [[ -n "$button" ]]; then
     print -r -- "$state" >| "$STATE_FILE"
 fi
 
-if command -v nmcli >/dev/null 2>&1; then
-    data=$(nmcli -t -f DEVICE,TYPE,STATE,CONNECTION device status | awk -F: '$3 == "connected" && ($2 == "wifi" || $2 == "ethernet") { print; exit }')
-else
-    data=""
-fi
+default_iface=$(ip route show default 2>/dev/null | awk 'NR==1 {print $5}')
 
-iface_type=$(echo "$data" | awk -F: '{print $2}')
-conn_name=$(echo "$data" | awk -F: '{print $4}')
+if [[ -z "$default_iface" ]]; then
+    iface_type=""
+elif [[ -d "/sys/class/net/$default_iface/wireless" ]]; then
+    iface_type="wifi"
+else
+    iface_type="ethernet"
+fi
 
 case "$iface_type" in
     ethernet)
@@ -32,7 +33,7 @@ case "$iface_type" in
         network_name="Ethernet"
         ;;
     wifi)
-        signal=$(nmcli -t -f IN-USE,SIGNAL dev wifi 2>/dev/null | awk -F: '$1 == "*" { print $2; exit }')
+        signal=$(awk -v iface="$default_iface" '$1 ~ iface":" { gsub(/\./, "", $3); print int(($3 + 0) * 100 / 70); exit }' /proc/net/wireless 2>/dev/null)
         if [[ -z "$signal" ]]; then
             icon="󰣻"
         elif (( signal > 75 )); then
@@ -44,7 +45,10 @@ case "$iface_type" in
         else
             icon="󰣴"
         fi
-        network_name="$conn_name"
+        if command -v iwgetid >/dev/null 2>&1; then
+            network_name=$(iwgetid -r 2>/dev/null)
+        fi
+        [[ -z "$network_name" ]] && network_name="$default_iface"
         ;;
     *)
         icon="󰣽"
@@ -52,7 +56,10 @@ case "$iface_type" in
         ;;
 esac
 
-ip_addr=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
+ip_addr=""
+if [[ -n "$default_iface" ]]; then
+    ip_addr=$(ip -4 -o addr show dev "$default_iface" 2>/dev/null | awk 'NR==1 {print $4}' | cut -d/ -f1)
+fi
 
 output="$icon"
 if [[ $state -eq 1 ]]; then

@@ -37,7 +37,7 @@ background=#c6a0f6
 
 [gpu_usage]
 command=$HOME/.config/i3blocks/gpu_usage.sh
-interval=5
+interval=10
 LABEL=GPU 
 separator=false
 separator_block_width=0
@@ -46,7 +46,7 @@ background=#8aadf4
 
 [gpu_temp]
 command=$HOME/.config/i3blocks/gpu_temperature.sh
-interval=5
+interval=10
 LABEL=GTEMP
 separator=false
 separator_block_width=0
@@ -82,7 +82,7 @@ background=#a6da95
 
 [network]
 command=$HOME/.config/i3blocks/network.sh
-interval=5
+interval=10
 LABEL=NET
 separator=false
 separator_block_width=0
@@ -154,7 +154,7 @@ color=#1e2030
 
 [battery]
 command=$HOME/.config/i3blocks/battery.sh -p
-interval=1
+interval=10
 LABEL=BATTERY
 separator=false
 separator_block_width=0

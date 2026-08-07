@@ -20,7 +20,8 @@ fi
 icon="󰢮"
 output="$icon"
 
-if ! command -v nvidia-smi >/dev/null 2>&1; then
+gpu_payload=$("$HOME/.config/i3blocks/gpu_stats.sh" 2>/dev/null)
+if [[ -z "$gpu_payload" || "$gpu_payload" == NA\|* ]]; then
     if [[ $state -ne 0 ]]; then
         output+=" N/A"
     fi
@@ -28,18 +29,7 @@ if ! command -v nvidia-smi >/dev/null 2>&1; then
     exit 0
 fi
 
-gpu_data=$(nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits 2>/dev/null | head -n 1)
-if [[ -z "$gpu_data" ]]; then
-    if [[ $state -ne 0 ]]; then
-        output+=" N/A"
-    fi
-    echo " $output"
-    exit 0
-fi
-
-gpu_util=$(echo "$gpu_data" | awk -F', *' '{print $1 + 0}')
-mem_used_mib=$(echo "$gpu_data" | awk -F', *' '{print $2 + 0}')
-mem_total_mib=$(echo "$gpu_data" | awk -F', *' '{print $3 + 0}')
+IFS='|' read -r gpu_util mem_used_mib mem_total_mib _gpu_temp <<< "$gpu_payload"
 
 if [[ $state -eq 1 ]]; then
     output+=" ${gpu_util}%"

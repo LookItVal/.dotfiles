@@ -5,6 +5,8 @@ SHOW_PERCENT_DEFAULT=false
 STATE_FILE="$HOME/.config/i3blocks/.toggle_battery"
 BUTTON="${BLOCK_BUTTON:-$button}"
 LOGIC_SCRIPT="$HOME/.config/i3blocks/battery_logic.sh"
+CACHE_FILE="$HOME/.config/i3blocks/.battery_logic_cache"
+CACHE_TTL=10
 
 for arg in "$@"; do
     case "$arg" in
@@ -42,7 +44,23 @@ if [[ ! -x "$LOGIC_SCRIPT" ]]; then
     fi
 fi
 
-logic_out=$(bash "$LOGIC_SCRIPT")
+logic_out=""
+now_sec=$(date +%s)
+
+if [[ -z "$BUTTON" && -r "$CACHE_FILE" ]]; then
+    IFS='|' read -r cache_ts cache_payload < "$CACHE_FILE"
+    if [[ "$cache_ts" =~ ^[0-9]+$ ]] && (( now_sec - cache_ts <= CACHE_TTL )) && [[ -n "$cache_payload" ]]; then
+        logic_out="$cache_payload"
+    fi
+fi
+
+if [[ -z "$logic_out" ]]; then
+    logic_out=$(bash "$LOGIC_SCRIPT")
+    if [[ -n "$logic_out" ]]; then
+        printf "%s|%s\n" "$now_sec" "$logic_out" > "$CACHE_FILE"
+    fi
+fi
+
 if [[ -z "$logic_out" ]]; then
     exit 0
 fi
@@ -51,7 +69,7 @@ IFS='|' read -r ICON CAPACITY STATUS ETA ETA_SEC <<< "$logic_out"
 
 projected_time=""
 if [[ -n "$ETA_SEC" && "$ETA_SEC" =~ ^[0-9]+$ && "$ETA_SEC" -gt 0 ]]; then
-    projected_time=$(date -d "@$(( $(date +%s) + ETA_SEC ))" "+%H:%M" 2>/dev/null)
+    projected_time=$(date -d "@$(( now_sec + ETA_SEC ))" "+%H:%M" 2>/dev/null)
 fi
 
 # --- Render Output ---

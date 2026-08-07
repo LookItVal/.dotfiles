@@ -17,13 +17,21 @@ ensure_state_dir() {
 }
 
 find_battery_path() {
-    find /sys/class/power_supply/ -maxdepth 1 -name "BAT*" | head -n 1
+    local bat_path
+    for bat_path in /sys/class/power_supply/BAT*; do
+        if [[ -d "$bat_path" ]]; then
+            printf "%s\n" "$bat_path"
+            return
+        fi
+    done
 }
 
 read_int_file() {
     local path="$1"
     if [[ -r "$path" ]]; then
-        cat "$path" 2>/dev/null
+        local value
+        IFS= read -r value < "$path"
+        printf "%s" "$value"
     fi
 }
 
@@ -300,8 +308,7 @@ main() {
 
     local energy_pair energy_now energy_full power_uw now_ts
     energy_pair=$(resolve_energy_uwh "$bat_path")
-    energy_now=$(printf "%s" "$energy_pair" | cut -d'|' -f1)
-    energy_full=$(printf "%s" "$energy_pair" | cut -d'|' -f2)
+    IFS='|' read -r energy_now energy_full <<< "$energy_pair"
     power_uw=$(resolve_power_uw "$bat_path")
     now_ts=$(date +%s)
 
@@ -309,8 +316,7 @@ main() {
 
     local eta_payload eta eta_sec icon
     eta_payload=$(predict_eta "$status" "$energy_now" "$energy_full" "$power_uw" "$now_ts")
-    eta=$(printf "%s" "$eta_payload" | cut -d'|' -f1)
-    eta_sec=$(printf "%s" "$eta_payload" | cut -d'|' -f2)
+    IFS='|' read -r eta eta_sec <<< "$eta_payload"
     icon=$(battery_icon "$status" "$capacity")
 
     # --- Low Battery Notification Guard ---

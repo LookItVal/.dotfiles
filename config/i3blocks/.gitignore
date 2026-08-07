@@ -4,4 +4,6 @@
 .battery_history_prune_ts
 .battery_notified_low
 .battery_power_window_*.csv
+.battery_logic_cache
+.gpu_stats_cache
 cpu_usage_expand_state

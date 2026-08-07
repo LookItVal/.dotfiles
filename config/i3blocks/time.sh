@@ -41,7 +41,17 @@ if [[ -n "$button" ]]; then
 fi
 
 output=""
-hour=$(date "+%I")
+time_fmt="%H:%M"
+if $show_hour12; then
+    time_fmt="%I:%M"
+fi
+if $show_seconds; then
+    time_fmt="$time_fmt:%S"
+fi
+
+date_payload=$(date "+%I|$time_fmt")
+IFS='|' read -r hour time_value <<< "$date_payload"
+
 case "$hour" in
     01) output+="󱑋" ;;
     02) output+="󱑌" ;;
@@ -58,17 +68,7 @@ case "$hour" in
 esac
 
 if [[ $state -eq 1 ]]; then
-    output+=" "
-    if $show_hour12; then
-        output+=$(date "+%I:%M")
-    else
-        output+=$(date "+%H:%M")
-    fi
-
-    if $show_seconds; then
-        output+=":"
-        output+=$(date "+%S")
-    fi
+    output+=" $time_value"
 fi
 
 echo " $output  "

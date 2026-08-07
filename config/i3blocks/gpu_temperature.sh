@@ -17,12 +17,12 @@ if [[ -n "$button" ]]; then
     print -r -- "$state" >| "$STATE_FILE"
 fi
 
-if command -v nvidia-smi >/dev/null 2>&1; then
-    temp=$(nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits 2>/dev/null | head -n 1)
+gpu_payload=$("$HOME/.config/i3blocks/gpu_stats.sh" 2>/dev/null)
+if [[ -z "$gpu_payload" || "$gpu_payload" == NA\|* ]]; then
+    temp=0
 else
-    temp=""
+    IFS='|' read -r _gpu_util _mem_used_mib _mem_total_mib temp <<< "$gpu_payload"
 fi
-[[ -z "$temp" ]] && temp=0
 
 icon=""
 color=\#181926
@@ -46,6 +46,6 @@ if [[ $state -eq 1 ]]; then
     output+="$temp°C"
 fi
 
-echo $output
-echo $icon
-echo $color
+echo "$output"
+echo "$icon"
+echo "$color"
