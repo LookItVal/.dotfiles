@@ -64,7 +64,8 @@ sudo cp -r src/* /usr/share/grub/themes/
 #else
 #  echo "$NEW_LINE" | sudo tee -a "$GRUB_CONFIG" > /dev/null
 #fi
-#sudo grub-mkconfig -o /boot/grub/grub.cfg
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+sudo sed -i -E 's/Windows Boot Manager \(on [^)]+\)/Windows Boot Manager/g' /boot/grub/grub.cfg
 
 echo "Would you like to apply the catppuccino theme to Spotify? (y/n)"
 read -r response

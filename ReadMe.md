@@ -3,10 +3,9 @@
 <p align="center">
 	<svg width="340" height="170" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QVC Logo">
 		<defs>
-			<radialGradient id="qvcLavenderMauve" cx="88%" cy="86%" r="46%">
-				<stop offset="0%" stop-color="#c6a0f6" stop-opacity="0.38" />
-				<stop offset="42%" stop-color="#b7bdf8" stop-opacity="0.99" />
-				<stop offset="100%" stop-color="#b7bdf8" stop-opacity="1" />
+			<radialGradient id="qvcLavenderMauve" cx="100%" cy="100%" r="150%">
+				<stop offset="0%" stop-color="#c6a0f6"/>
+				<stop offset="100%" stop-color="#b7bdf8"/>
 			</radialGradient>
 		</defs>
 		<g fill="url(#qvcLavenderMauve)">
@@ -32,6 +31,16 @@ Opinionated dotfiles for a keyboard-first desktop setup that is:
 - GTK-first in app/theming choices where possible.
 
 The goal is a cohesive daily-driver environment around Alacritty, Neovim, i3, and Catppuccin Macchiato.
+
+## Screenshots
+
+<p align="center">
+  <img src="images/fastfetch.png" alt="Fastfetch output screenshot" width="900" />
+</p>
+
+<p align="center">
+  <em>Desktop screenshot coming soon.</em>
+</p>
 
 ## Table of Contents
 

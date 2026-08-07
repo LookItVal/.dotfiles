@@ -49,10 +49,7 @@ export VISUAL=nvim
 # general aliases
 alias pls='sudo $(fc -ln -1)'
 alias neofetch='fastfetch --config ~/.config/fastfetch/config.jsonc'
-
-#lerd aliases
-alias lerd-up="podman start \$(podman ps -a -q --filter name=lerd)"
-alias lerd-down="podman stop \$(podman ps -a -q --filter name=lerd)"
+alias reboot-windows='sudo grub-reboot "Windows Boot Manager" && reboot'
 
 # get os
 os=$(uname -s)

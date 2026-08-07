@@ -116,6 +116,7 @@ typeset -A menu
 menu=(
   [Shutdown]="systemctl poweroff"
   [Reboot]="systemctl reboot"
+  [Reboot into Windows]="zsh -ic 'reboot-windows'"
   [Hibernate]="systemctl hibernate"
   [Suspend]="systemctl suspend"
   [Halt]="systemctl halt"
@@ -126,7 +127,7 @@ menu=(
 menu_nrows=${#menu[@]}
 
 # Menu entries that may trigger a confirmation message
-menu_confirm="Shutdown Reboot Hibernate Suspend Halt Logout"
+menu_confirm="Shutdown Reboot Reboot into Windows Hibernate Suspend Halt Logout"
 
 launcher_exe=""
 launcher_options=""
