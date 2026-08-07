@@ -319,9 +319,9 @@ bar {
 ##########################
 # Start Process
 ##########################
-exec_always --no-startup-id picom -b --config ~/.config/picom/picom.conf
+exec --no-startup-id picom -b --config ~/.config/picom/picom.conf
 exec i3lock -b --image=$(find ~/.dotfiles/arch/wallpapers -type f | shuf -n 1) -F --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""
 exec --no-startup-id dunst
 exec_always --no-startup-id autorandr --change --default single
-exec_always --no-startup-id xbindkeys
+exec --no-startup-id xbindkeys
 exec_always feh --bg-fill $(find ~/.dotfiles/arch/wallpapers -type f | shuf -n 2)

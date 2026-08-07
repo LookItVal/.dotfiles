@@ -1,6 +1,9 @@
 ZIM_HOME=~/.config/zsh/zim
 ZDOTDIR=~/.config/zsh/
 
+# Lerd completions path (must be set before completion system is initialized)
+fpath=(/home/val/.local/share/zsh/site-functions $fpath)
+
 # Stolen from Tyler, im not using this now
 # Used by zsh-tab-title module
 ZSH_TAB_TITLE_ADDITIONAL_TERMS='alacritty'
@@ -47,6 +50,10 @@ export VISUAL=nvim
 alias pls='sudo $(fc -ln -1)'
 alias neofetch='fastfetch --config ~/.config/fastfetch/config.jsonc'
 
+#lerd aliases
+alias lerd-up="podman start \$(podman ps -a -q --filter name=lerd)"
+alias lerd-down="podman stop \$(podman ps -a -q --filter name=lerd)"
+
 # get os
 os=$(uname -s)
 if [ $os = "Darwin" ]; then
@@ -80,9 +87,6 @@ if [ $os != "arch" ]; then
   fi
 fi
 
-eval "$(micromamba shell hook --shell zsh)"
-
-
 
 
 # Added by Lerd installer
@@ -90,7 +94,3 @@ export PATH="/home/val/.local/bin:$PATH"
 
 # Lerd
 export PATH="/home/val/.local/share/lerd/bin:$PATH"
-
-# Lerd completions
-fpath=(/home/val/.local/share/zsh/site-functions $fpath)
-autoload -Uz compinit && compinit
