@@ -7,7 +7,10 @@ cursor/
 Cursor/
 Claude/
 did-you-mean-nodejs/
+figma-linux/
 google-chrome/
+GIMP/
+lerd/
 libreoffice/
 mozilla/
 obsidian/
@@ -20,6 +23,8 @@ shopify-cli-kit-nodejs/
 shopify-cli-theme-conf-nodejs/
 shopify-cli-theme-store-password-nodejs/
 Slack/
+spicetify/
+systemd/
 tmux/
 vlc/
 Code/
@@ -30,3 +35,4 @@ dconf/
 spotify/
 Thunar/
 xfce4/xfconf/xfce-perchannel-xml/thunar.xml
+xarchiver/

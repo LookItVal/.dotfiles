@@ -6,8 +6,9 @@ x-scheme-handler/https=firefox.desktop
 x-scheme-handler/about=firefox.desktop
 x-scheme-handler/unknown=firefox.desktop
 x-scheme-handler/claude=com.anthropic.Claude.desktop
+x-scheme-handler/figma=figma-linux.desktop
 
 [Added Associations]
 inode/directory=cursor.desktop;
 application/sql=code.desktop;firefox.desktop;
-x-scheme-handler/claude=com.anthropic.Claude.desktop;
+image/png=gimp.desktop;com.google.Chrome.desktop;feh.desktop;

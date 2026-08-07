@@ -50,4 +50,6 @@ echo "Setup complete, would you like to restart now? (y/n)"
 read answer
 if [[ $answer == "y" ]]; then
   sudo reboot
+else
+  echo "Setup complete, some changes may require a restart to take effect"
 fi

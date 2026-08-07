@@ -40,6 +40,9 @@ alias v='nvim'
 alias vi='v'
 alias vim='v'
 
+export EDITOR=nvim
+export VISUAL=nvim
+
 # general aliases
 alias pls='sudo $(fc -ln -1)'
 
@@ -80,3 +83,13 @@ eval "$(micromamba shell hook --shell zsh)"
 
 
 
+
+# Added by Lerd installer
+export PATH="/home/val/.local/bin:$PATH"
+
+# Lerd
+export PATH="/home/val/.local/share/lerd/bin:$PATH"
+
+# Lerd completions
+fpath=(/home/val/.local/share/zsh/site-functions $fpath)
+autoload -Uz compinit && compinit

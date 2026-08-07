@@ -21,5 +21,9 @@ if [ $os != "arch" ]; then
 fi
 
 if [ $os = "arch" ]; then
-  exec startx
+  # only on a real console login on tty1, never in a terminal emulator
+  # or a non-interactive shell (e.g. tooling that sources this file)
+  if [[ -o interactive && -z $DISPLAY && $TTY == /dev/tty1 ]]; then
+    exec startx
+  fi
 fi

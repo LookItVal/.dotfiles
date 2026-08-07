@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+TARGET="$1"   # "window" or "screen"
+ACTION="$2"   # "file" or "clip"
+
+DIR="$HOME/Pictures/Screenshots"
+FILE="$DIR/$(date +%Y-%m-%d_%H-%M-%S).png"
+
+# Determine target geometry & description name
+if [ "$TARGET" = "window" ]; then
+    WIN_ID=$(xdotool getactivewindow 2>/dev/null)
+    if [ -z "$WIN_ID" ]; then
+        notify-send "Screenshot Error" "No active window found"
+        exit 1
+    fi
+
+    # Fetch window title (e.g., "main.py - Visual Studio Code")
+    WIN_TITLE=$(xdotool getwindowname "$WIN_ID" 2>/dev/null)
+    [ -z "$WIN_TITLE" ] && LABEL="window" || LABEL="\"$WIN_TITLE\""
+
+    MAIM_ARGS=("-i" "$WIN_ID")
+else
+    LABEL="active screen"
+
+    # Get current cursor position
+    eval $(xdotool getmouselocation --shell)
+
+    # Find the single active monitor region (WxH+X+Y) surrounding the cursor
+    MON_GEOM=""
+    while read -r line; do
+        geom=$(echo "$line" | awk '{print $3}') # format: W/mmxH/mm+X+Y
+        
+        w=$(echo "$geom" | cut -d'/' -f1)
+        h=$(echo "$geom" | cut -d'x' -f2 | cut -d'/' -f1)
+        x=$(echo "$geom" | cut -d'+' -f2)
+        y=$(echo "$geom" | cut -d'+' -f3)
+
+        if (( X >= x && X < x + w && Y >= y && Y < y + h )); then
+            MON_GEOM="${w}x${h}+${x}+${y}"
+            break
+        fi
+    done < <(xrandr --listactivemonitors | tail -n +2)
+
+    if [ -n "$MON_GEOM" ]; then
+        MAIM_ARGS=("-g" "$MON_GEOM")
+    else
+        # Fallback if xrandr fails to locate mouse
+        MAIM_ARGS=("-m" "1")
+    fi
+fi
+
+# Execute capture and send detailed notification
+if [ "$ACTION" = "file" ]; then
+    mkdir -p "$DIR"
+    maim "${MAIM_ARGS[@]}" "$FILE" && notify-send "Screenshot of $LABEL Saved" "Saved screenshot of $LABEL to $FILE"
+else
+    maim "${MAIM_ARGS[@]}" | xclip -selection clipboard -t image/png && notify-send "Screenshot of $LABEL Copied" "Copied screenshot of $LABEL to clipboard"
+fi

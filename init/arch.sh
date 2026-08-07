@@ -37,14 +37,16 @@ systemctl enable wallpaper.timer
 systemctl start wallpaper.timer
 
 sudo pacman -Syu
-sudo pacman -S --noconfirm ntp exa bat ripgrep fd fzf neovim alacritty i3-wm picom xorg xorg-xinit xorg-server i3status rofi pipewire pipewire-pulse firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc thunar thunar-volman ark thunar-archive-plugin gvfs htop nvtop flameshot dunst xclip xsel xdg-desktop-portal xdg-desktop-portal-gtk
-for pkg in visual-studio-code-bin i3lock-color nvm spicetify-cli networkmanager-dmenu-git networkmanager-dispatcher-ntpd pwvucontrol catppuccin-gtk-theme-macchiato; do
+sudo pacman -S --noconfirm ntp exa bat ripgrep fd fzf neovim alacritty i3-wm picom xorg xorg-xinit xorg-server i3status rofi pipewire pipewire-pulse firefox feh spotify-launcher i3blocks nodejs python ipython python-pip nerd-fonts vlc thunar thunar-volman xarchiver zip unzip 7zip unrar p7zip thunar-archive-plugin gvfs htop nvtop flameshot dunst xclip xsel xdg-desktop-portal xdg-desktop-portal-gtk maim xdotool papirus-icon-theme bluez bluez-utils bluetui
+for pkg in visual-studio-code-bin i3lock-color nvm spicetify-cli networkmanager-dmenu-git networkmanager-dispatcher-ntpd pwvucontrol catppuccin-gtk-theme-macchiato papirus-folder-catppuccin-git; do
   if ! yay -Q $pkg &>/dev/null; then
     yay -S --noconfirm --answerclean All --overwrite="*" $pkg
   else
     echo "$pkg is already installed"
   fi
 done
+
+papirus-folders -C cat-macchiato-mauve -t Papirus-Dark
 
 sudo timedatectl set-timezone US/Central
 sudo ntpd-qg
@@ -53,21 +55,23 @@ sudo hwclock --systohc
 echo "Installing Grub Theme..."
 git clone https://github.com/catppuccin/grub.git && cd grub
 sudo cp -r src/* /usr/share/grub/themes/
-FLAVOR="macchiato"
-THEME_PATH="/usr/share/grub/themes/catppuccin-${FLAVOR}-grub-theme/theme.txt"
-GRUB_CONFIG="/etc/default/grub".
-NEW_LINE="GRUB_THEME=\"${THEME_PATH}\""
-if grep -q "^#\?\s*GRUB_THEME=" "$GRUB_CONFIG"; then
-  sudo sed -i "s|^#\?\s*GRUB_THEME=.*|${NEW_LINE}|" "$GRUB_CONFIG"
-else
-  echo "$NEW_LINE" | sudo tee -a "$GRUB_CONFIG" > /dev/null
-fi
-sudo grub-mkconfig -o /boot/grub/grub.cfg
+#FLAVOR="macchiato"
+#THEME_PATH="/usr/share/grub/themes/catppuccin-${FLAVOR}-grub-theme/theme.txt"
+#GRUB_CONFIG="/etc/default/grub".
+#NEW_LINE="GRUB_THEME=\"${THEME_PATH}\""
+#if grep -q "^#\?\s*GRUB_THEME=" "$GRUB_CONFIG"; then
+#  sudo sed -i "s|^#\?\s*GRUB_THEME=.*|${NEW_LINE}|" "$GRUB_CONFIG"
+#else
+#  echo "$NEW_LINE" | sudo tee -a "$GRUB_CONFIG" > /dev/null
+#fi
+#sudo grub-mkconfig -o /boot/grub/grub.cfg
 
 echo "Would you like to apply the catppuccino theme to Spotify? (y/n)"
 read -r response
 if [[ $response == "y" ]]; then
-  spicetify config current_theme catppuccino
+  spicetify config spotify_path "$HOME/.local/share/spotify-launcher/install/usr/share/spotify"
+  spicetify backup apply
+  spicetify config current_theme catppuccin
   spicetify config color_scheme macchiato
   spicetify config inject_css 1 inject_theme_js 1 replace_colors 1 overwrite_assets 1
   spicetify apply

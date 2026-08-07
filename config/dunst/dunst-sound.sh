@@ -18,6 +18,11 @@ case "$DUNST_SUMMARY" in
         paplay "$SOUND_DIR/volume.wav" 2>/dev/null &
         exit 0
         ;;
+    *"Screenshot"*)
+        # Camera shutter sound
+        paplay "$SOUND_DIR/camera-shutter.wav" 2>/dev/null &
+        exit 0
+        ;;
 esac
 
 # Fallback by Urgency level
