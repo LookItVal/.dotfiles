@@ -1,0 +1,216 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+MODE="${1:-window}"
+STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+PID_FILE="$STATE_DIR/i3-screen-recorder.pid"
+OUT_FILE_PATH="$STATE_DIR/i3-screen-recorder.out"
+OUT_DIR="$HOME/Pictures/Screenshots"
+mkdir -p "$OUT_DIR"
+
+notify_error() {
+    notify-send "Recording Error" "$1" -t 3000
+}
+
+open_saved_file() {
+    local file_path="$1"
+    local mime_type
+
+    mime_type="$(file --mime-type -Lb "$file_path" 2>/dev/null || true)"
+
+    case "$mime_type" in
+        video/*)
+            if command -v firefox >/dev/null 2>&1; then
+                firefox "$file_path" >/dev/null 2>&1 &
+            else
+                xdg-open "$file_path" >/dev/null 2>&1 &
+            fi
+            ;;
+        image/*)
+            if command -v firefox >/dev/null 2>&1; then
+                firefox "$file_path" >/dev/null 2>&1 &
+            else
+                xdg-open "$file_path" >/dev/null 2>&1 &
+            fi
+            ;;
+        *)
+            xdg-open "$file_path" >/dev/null 2>&1 &
+            ;;
+    esac
+}
+
+notify_saved_file() {
+    local summary="$1"
+    local body="$2"
+    local file_path="$3"
+
+    (
+        action="$(notify-send --action=open=Open --wait "$summary" "$body" 2>/dev/null || true)"
+        if [ "$action" = "open" ]; then
+            open_saved_file "$file_path"
+        fi
+    ) >/dev/null 2>&1 &
+}
+
+stop_recording() {
+    if [ -f "$PID_FILE" ]; then
+        REC_PID="$(cat "$PID_FILE" 2>/dev/null || true)"
+        if [ -n "$REC_PID" ] && kill -0 "$REC_PID" 2>/dev/null; then
+            kill -INT "$REC_PID" 2>/dev/null || true
+            wait "$REC_PID" 2>/dev/null || true
+        fi
+        rm -f "$PID_FILE"
+    fi
+
+    if [ -f "$OUT_FILE_PATH" ]; then
+        REC_FILE="$(cat "$OUT_FILE_PATH" 2>/dev/null || true)"
+        rm -f "$OUT_FILE_PATH"
+        if [ -n "$REC_FILE" ]; then
+            TMP_REC_FILE="${REC_FILE}.tmp"
+            if [ -f "$TMP_REC_FILE" ]; then
+                mv -f "$TMP_REC_FILE" "$REC_FILE" || {
+                    rm -f "$TMP_REC_FILE"
+                    notify-send "Recording Error" "The temporary recording could not be finalized correctly" -t 4000
+                    exit 1
+                }
+            fi
+            if [ -f "$REC_FILE" ]; then
+                notify_saved_file "Recording Stopped" "Saved to $REC_FILE" "$REC_FILE"
+            else
+                notify-send "Recording Stopped" "Recording stopped" -t 3000
+            fi
+        else
+            notify-send "Recording Stopped" "Recording stopped" -t 3000
+        fi
+    else
+        notify-send "Recording Stopped" "No active recording to stop" -t 3000
+    fi
+}
+
+get_active_monitor_geometry() {
+    if ! command -v xdotool >/dev/null 2>&1; then
+        return 1
+    fi
+
+    eval "$(xdotool getmouselocation --shell 2>/dev/null || true)"
+    if [ -z "${X:-}" ] || [ -z "${Y:-}" ]; then
+        return 1
+    fi
+
+    while read -r line; do
+        [ -z "$line" ] && continue
+        geom="$(echo "$line" | awk '{print $3}')"
+        if [ -z "$geom" ]; then
+            continue
+        fi
+
+        w="$(echo "$geom" | cut -d'/' -f1)"
+        h="$(echo "$geom" | cut -d'x' -f2 | cut -d'/' -f1)"
+        x="$(echo "$geom" | cut -d'+' -f2)"
+        y="$(echo "$geom" | cut -d'+' -f3)"
+
+        if (( X >= x && X < x + w && Y >= y && Y < y + h )); then
+            printf '%s %s %s %s\n' "$w" "$h" "$x" "$y"
+            return 0
+        fi
+    done < <(xrandr --listactivemonitors 2>/dev/null | tail -n +2)
+
+    return 1
+}
+
+get_window_geometry() {
+    if command -v i3-msg >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+                GEOM="$(i3-msg -t get_tree 2>/dev/null | jq -r '
+                    recurse(.nodes[], .floating_nodes[]) |
+                    select(.focused) |
+                    "\(.rect.width) \(.rect.height) \(.rect.x) \(.rect.y)"
+                ' 2>/dev/null | head -n 1)"
+
+        if [ -n "$GEOM" ]; then
+            printf '%s\n' "$GEOM"
+            return 0
+        fi
+    fi
+
+    if ! command -v xdotool >/dev/null 2>&1; then
+        return 1
+    fi
+
+    WIN_ID="$(xdotool getactivewindow 2>/dev/null || true)"
+    if [ -z "$WIN_ID" ]; then
+        return 1
+    fi
+
+    GEOM_OUTPUT="$(xdotool getwindowgeometry --shell "$WIN_ID" 2>/dev/null || true)"
+    X="$(printf '%s\n' "$GEOM_OUTPUT" | awk -F= '$1=="x"{print $2}')"
+    Y="$(printf '%s\n' "$GEOM_OUTPUT" | awk -F= '$1=="y"{print $2}')"
+    WIDTH="$(printf '%s\n' "$GEOM_OUTPUT" | awk -F= '$1=="width"{print $2}')"
+    HEIGHT="$(printf '%s\n' "$GEOM_OUTPUT" | awk -F= '$1=="height"{print $2}')"
+
+    if [ -z "${X:-}" ] || [ -z "${Y:-}" ] || [ -z "${WIDTH:-}" ] || [ -z "${HEIGHT:-}" ]; then
+        return 1
+    fi
+
+    printf '%s %s %s %s\n' "$WIDTH" "$HEIGHT" "$X" "$Y"
+}
+
+start_recording() {
+    if [ -f "$PID_FILE" ]; then
+        EXISTING_PID="$(cat "$PID_FILE" 2>/dev/null || true)"
+        if [ -n "$EXISTING_PID" ] && kill -0 "$EXISTING_PID" 2>/dev/null; then
+            notify_error "A recording is already running"
+            exit 1
+        fi
+        rm -f "$PID_FILE"
+    fi
+
+    if ! command -v ffmpeg >/dev/null 2>&1; then
+        notify_error "ffmpeg is not installed"
+        exit 1
+    fi
+
+    OUT_FILE="$OUT_DIR/rec_$(date +%Y-%m-%d_%H-%M-%S).mkv"
+    TMP_OUT_FILE="${OUT_FILE}.tmp"
+    rm -f "$TMP_OUT_FILE"
+    printf '%s\n' "$OUT_FILE" > "$OUT_FILE_PATH"
+
+    if [ "$MODE" = "window" ]; then
+        GEOM="$(get_window_geometry || true)"
+        if [ -z "$GEOM" ]; then
+            rm -f "$OUT_FILE_PATH"
+            notify_error "Could not determine the active window"
+            exit 1
+        fi
+
+        read -r WIDTH HEIGHT X Y <<< "$GEOM"
+        notify-send "Recording Started" "Capturing the active window" -t 2500
+        setsid ffmpeg -nostdin -f x11grab -framerate 30 -video_size "${WIDTH}x${HEIGHT}" -i ":0.0+${X},${Y}" -c:v libx264 -preset ultrafast -crf 23 -pix_fmt yuv420p -profile:v high -level 4.0 -threads 0 -f matroska -y "$TMP_OUT_FILE" >"$STATE_DIR/i3-screen-recorder.log" 2>&1 < /dev/null &
+    else
+        GEOM="$(get_active_monitor_geometry || true)"
+        if [ -z "$GEOM" ]; then
+            rm -f "$OUT_FILE_PATH"
+            notify_error "Could not determine the active monitor"
+            exit 1
+        fi
+
+        read -r WIDTH HEIGHT X Y <<< "$GEOM"
+        notify-send "Recording Started" "Capturing the active monitor" -t 2500
+        setsid ffmpeg -nostdin -f x11grab -framerate 30 -video_size "${WIDTH}x${HEIGHT}" -i ":0.0+${X},${Y}" -c:v libx264 -preset ultrafast -crf 23 -pix_fmt yuv420p -profile:v high -level 4.0 -threads 0 -f matroska -y "$TMP_OUT_FILE" >"$STATE_DIR/i3-screen-recorder.log" 2>&1 < /dev/null &
+    fi
+
+    REC_PID="$!"
+    printf '%s\n' "$REC_PID" > "$PID_FILE"
+}
+
+case "$MODE" in
+    stop)
+        stop_recording
+        ;;
+    window|screen)
+        start_recording
+        ;;
+    *)
+        notify_error "Usage: record-screen [window|screen|stop]"
+        exit 1
+        ;;
+esac
