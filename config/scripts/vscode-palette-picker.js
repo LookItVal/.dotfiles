@@ -1,0 +1,1 @@
+../../scripts/vscode-palette-picker.js

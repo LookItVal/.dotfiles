@@ -1,0 +1,22 @@
+[
+    {
+        "key": "ctrl+m",
+        "command": "editor.action.formatSelection",
+        "when": "editorHasDocumentSelectionFormattingProvider && editorTextFocus && !editorReadonly"
+    },
+    {
+        "key": "ctrl+m ctrl+f",
+        "command": "-editor.action.formatSelection",
+        "when": "editorHasDocumentSelectionFormattingProvider && editorTextFocus && !editorReadonly"
+    },
+    {
+        "key": "ctrl+alt+p",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Theme: Set Multi-Color Workspace Palette"
+    },
+    {
+        "key": "ctrl+alt+shift+p",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Theme: Clear Workspace Palette"
+    }
+]

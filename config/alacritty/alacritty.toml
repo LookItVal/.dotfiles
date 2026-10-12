@@ -8,12 +8,12 @@ family = "FiraCode Nerd Font"
 style = "Medium"
 
 [font.bold_italic]
-family = " FiraCode Nerd Font"
-style = "Bold"
+family = "Hack Nerd Font Mono"
+style = "Bold Italic"
 
 [font.italic]
-family = "FireCode Nerd Font"
-style = "Medium"
+family = "Hack Nerd Font Mono"
+style = "Italic"
 
 [general]
 import = [

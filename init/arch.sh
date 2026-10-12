@@ -29,8 +29,7 @@ sudo rm -r /etc/systemd/system/wallpapers
 sudo cp .dotfiles/arch/wallpaper.service /etc/systemd/system/wallpaper.service
 sudo cp .dotfiles/arch/wallpaper.timer /etc/systemd/system/wallpaper.timer
 sudo cp .dotfiles/arch/wallpaper.sh /etc/systemd/system/wallpaper.sh
-sudo mkdir /etc/systemd/system/wallpapers
-sudo cp .dotfiles/arch/wallpapers/* /etc/systemd/system/wallpapers
+sudo cp -r .dotfiles/arch/wallpapers /etc/systemd/system/wallpapers
 sudo mkdir /etc/systemd/system/getty@tty1.service.d
 sudo cp .dotfiles/arch/autologin.conf /etc/systemd/system/getty@tty1.service.d/autologin.conf
 systemctl enable wallpaper.timer

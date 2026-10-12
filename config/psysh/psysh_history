@@ -1,0 +1,4 @@
+$clinic = \App\Models\Clinic::query()->firstOrCreate(["name" => "Harness Test Animal Hospital"], ["address" => "123 Test St", "city" => "Overland Park", "state" => "KS", "zip" => "66204", "country" => "US", "phone" => "913-555-0100"]);
+$vets = [["John","Smith","KS"],["Jon","Smyth","KS"],["Jonathan","Smithe","KS"],["Johnny","Smitt","KS"],["Joan","Smithson","KS"],["Sarah","Chen","KS"],["Sara","Chenn","KS"],["Michael","Rodriguez","KS"],["Micheal","Rodrigez","KS"],["Katherine","Oconnor","KS"],["Catherine","OConnor","CA"],["Steven","Johnson","CA"],["Stephen","Jonson","CA"],["Elizabeth","Vandenberg","CA"]];
+foreach ($vets as $v) { \App\Models\Veterinarian::query()->firstOrCreate(["first_name" => $v[0], "last_name" => $v[1]], ["clinic_id" => $clinic->id, "state" => $v[2], "email" => strtolower($v[0].".".$v[1])."@harness.test", "phone" => "913-555-0101", "is_verified" => true]); }
+echo "SEEDED clinic_id=".$clinic->id." vets=".\App\Models\Veterinarian::count().PHP_EOL;

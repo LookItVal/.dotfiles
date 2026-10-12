@@ -7,8 +7,11 @@ x-scheme-handler/about=firefox.desktop
 x-scheme-handler/unknown=firefox.desktop
 x-scheme-handler/claude=com.anthropic.Claude.desktop
 x-scheme-handler/figma=figma-linux.desktop
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop
+x-scheme-handler/redisinsight=redisinsight.desktop
 
 [Added Associations]
 inode/directory=cursor.desktop;
 application/sql=code.desktop;firefox.desktop;
-image/png=gimp.desktop;com.google.Chrome.desktop;feh.desktop;
+image/png=gimp.desktop;feh.desktop;com.google.Chrome.desktop;
+image/jpeg=com.google.Chrome.desktop;gimp.desktop;

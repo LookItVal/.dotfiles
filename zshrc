@@ -48,7 +48,7 @@ export VISUAL=nvim
 
 # general aliases
 alias pls='sudo $(fc -ln -1)'
-alias neofetch='fastfetch --config ~/.config/fastfetch/config.jsonc'
+alias fetch='fastfetch --config ~/.config/fastfetch/config.jsonc'
 alias reboot-windows='sudo grub-reboot "Windows Boot Manager" && reboot'
 
 # get os

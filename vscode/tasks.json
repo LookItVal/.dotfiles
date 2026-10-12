@@ -1,0 +1,139 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Theme: Set Multi-Color Workspace Palette",
+            "type": "shell",
+            "command": "node \"${env:HOME}/.config/scripts/vscode-palette-picker.js\" \"${workspaceFolder}\" \"${input:mainBackgroundColor}\" \"${input:accentColor}\" \"${input:foregroundColor}\" \"${input:addToGitignore}\"",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "close": true
+            }
+        },
+        {
+            "label": "Theme: Clear Workspace Palette",
+            "type": "shell",
+            "command": "node \"${env:HOME}/.config/scripts/vscode-palette-picker.js\" \"${workspaceFolder}\" --clear",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "close": true
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "mainBackgroundColor",
+            "type": "pickString",
+            "description": "Step 1/4: Pick Main Background Color (Title Bar & Status Bar)",
+            "options": [
+                { "label": "Rosewater (#f4dbd6)", "value": "#f4dbd6" },
+                { "label": "Flamingo (#f0c6c6)", "value": "#f0c6c6" },
+                { "label": "Pink (#f5bde6)", "value": "#f5bde6" },
+                { "label": "Mauve (#c6a0f6)", "value": "#c6a0f6" },
+                { "label": "Red (#ed8796)", "value": "#ed8796" },
+                { "label": "Maroon (#ee99a0)", "value": "#ee99a0" },
+                { "label": "Peach (#f5a97f)", "value": "#f5a97f" },
+                { "label": "Yellow (#eed49f)", "value": "#eed49f" },
+                { "label": "Green (#a6da95)", "value": "#a6da95" },
+                { "label": "Teal (#8bd5ca)", "value": "#8bd5ca" },
+                { "label": "Sky (#91d7e3)", "value": "#91d7e3" },
+                { "label": "Sapphire (#7dc4e4)", "value": "#7dc4e4" },
+                { "label": "Blue (#8aadf4)", "value": "#8aadf4" },
+                { "label": "Lavender (#b7bdf8)", "value": "#b7bdf8" },
+                { "label": "Text (#cad3f5)", "value": "#cad3f5" },
+                { "label": "Subtext1 (#b8c0e0)", "value": "#b8c0e0" },
+                { "label": "Subtext0 (#a5adcb)", "value": "#a5adcb" },
+                { "label": "Overlay2 (#939ab7)", "value": "#939ab7" },
+                { "label": "Overlay1 (#8087a2)", "value": "#8087a2" },
+                { "label": "Overlay0 (#6e738d)", "value": "#6e738d" },
+                { "label": "Surface2 (#5b6078)", "value": "#5b6078" },
+                { "label": "Surface1 (#494d64)", "value": "#494d64" },
+                { "label": "Surface0 (#363a4f)", "value": "#363a4f" },
+                { "label": "Base (#24273a)", "value": "#24273a" },
+                { "label": "Mantle (#1e2030)", "value": "#1e2030" },
+                { "label": "Crust (#181926)", "value": "#181926" }
+            ],
+            "default": "#181926"
+        },
+        {
+            "id": "accentColor",
+            "type": "pickString",
+            "description": "Step 2/4: Pick Colored Buttons and Accents Color",
+            "options": [
+                { "label": "Rosewater (#f4dbd6)", "value": "#f4dbd6" },
+                { "label": "Flamingo (#f0c6c6)", "value": "#f0c6c6" },
+                { "label": "Pink (#f5bde6)", "value": "#f5bde6" },
+                { "label": "Mauve (#c6a0f6)", "value": "#c6a0f6" },
+                { "label": "Red (#ed8796)", "value": "#ed8796" },
+                { "label": "Maroon (#ee99a0)", "value": "#ee99a0" },
+                { "label": "Peach (#f5a97f)", "value": "#f5a97f" },
+                { "label": "Yellow (#eed49f)", "value": "#eed49f" },
+                { "label": "Green (#a6da95)", "value": "#a6da95" },
+                { "label": "Teal (#8bd5ca)", "value": "#8bd5ca" },
+                { "label": "Sky (#91d7e3)", "value": "#91d7e3" },
+                { "label": "Sapphire (#7dc4e4)", "value": "#7dc4e4" },
+                { "label": "Blue (#8aadf4)", "value": "#8aadf4" },
+                { "label": "Lavender (#b7bdf8)", "value": "#b7bdf8" },
+                { "label": "Text (#cad3f5)", "value": "#cad3f5" },
+                { "label": "Subtext1 (#b8c0e0)", "value": "#b8c0e0" },
+                { "label": "Subtext0 (#a5adcb)", "value": "#a5adcb" },
+                { "label": "Overlay2 (#939ab7)", "value": "#939ab7" },
+                { "label": "Overlay1 (#8087a2)", "value": "#8087a2" },
+                { "label": "Overlay0 (#6e738d)", "value": "#6e738d" },
+                { "label": "Surface2 (#5b6078)", "value": "#5b6078" },
+                { "label": "Surface1 (#494d64)", "value": "#494d64" },
+                { "label": "Surface0 (#363a4f)", "value": "#363a4f" },
+                { "label": "Base (#24273a)", "value": "#24273a" },
+                { "label": "Mantle (#1e2030)", "value": "#1e2030" },
+                { "label": "Crust (#181926)", "value": "#181926" }
+            ],
+            "default": "#c6a0f6"
+        },
+        {
+            "id": "foregroundColor",
+            "type": "pickString",
+            "description": "Step 3/4: Pick Foreground Text Color (on top of Main Background)",
+            "options": [
+                { "label": "Rosewater (#f4dbd6)", "value": "#f4dbd6" },
+                { "label": "Flamingo (#f0c6c6)", "value": "#f0c6c6" },
+                { "label": "Pink (#f5bde6)", "value": "#f5bde6" },
+                { "label": "Mauve (#c6a0f6)", "value": "#c6a0f6" },
+                { "label": "Red (#ed8796)", "value": "#ed8796" },
+                { "label": "Maroon (#ee99a0)", "value": "#ee99a0" },
+                { "label": "Peach (#f5a97f)", "value": "#f5a97f" },
+                { "label": "Yellow (#eed49f)", "value": "#eed49f" },
+                { "label": "Green (#a6da95)", "value": "#a6da95" },
+                { "label": "Teal (#8bd5ca)", "value": "#8bd5ca" },
+                { "label": "Sky (#91d7e3)", "value": "#91d7e3" },
+                { "label": "Sapphire (#7dc4e4)", "value": "#7dc4e4" },
+                { "label": "Blue (#8aadf4)", "value": "#8aadf4" },
+                { "label": "Lavender (#b7bdf8)", "value": "#b7bdf8" },
+                { "label": "Text (#cad3f5)", "value": "#cad3f5" },
+                { "label": "Subtext1 (#b8c0e0)", "value": "#b8c0e0" },
+                { "label": "Subtext0 (#a5adcb)", "value": "#a5adcb" },
+                { "label": "Overlay2 (#939ab7)", "value": "#939ab7" },
+                { "label": "Overlay1 (#8087a2)", "value": "#8087a2" },
+                { "label": "Overlay0 (#6e738d)", "value": "#6e738d" },
+                { "label": "Surface2 (#5b6078)", "value": "#5b6078" },
+                { "label": "Surface1 (#494d64)", "value": "#494d64" },
+                { "label": "Surface0 (#363a4f)", "value": "#363a4f" },
+                { "label": "Base (#24273a)", "value": "#24273a" },
+                { "label": "Mantle (#1e2030)", "value": "#1e2030" },
+                { "label": "Crust (#181926)", "value": "#181926" }
+            ],
+            "default": "#cad3f5"
+        },
+        {
+            "id": "addToGitignore",
+            "type": "pickString",
+            "description": "Step 4/4: Add .vscode/settings.json to the local .gitignore when available?",
+            "options": [
+                { "label": "No", "value": "false" },
+                { "label": "Yes", "value": "true" }
+            ],
+            "default": "false"
+        }
+    ]
+}
