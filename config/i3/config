@@ -51,7 +51,7 @@ set $mod Mod4
 # Locker Presets
 # set $locker i3lock -b -B 5 --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""
 
-set $locker i3lock -b --image=$(find ~/.dotfiles/arch/wallpapers -type f | shuf -n 1) -F --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""
+set $locker i3lock -b --image=$(find ~/.dotfiles/arch/wallpapers/landscape -type f | shuf -n 1) -F --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -224,24 +224,29 @@ bindsym $mod+Shift+Mod1+8 move container to workspace number $ws18
 bindsym $mod+Shift+Mod1+9 move container to workspace number $ws19
 bindsym $mod+Shift+Mod1+0 move container to workspace number $ws20
 
-# lock worspaces to next monitor
-workspace 1 output eDP-1
-workspace 2 output eDP-1
-workspace 3 output eDP-1
+# lock workspaces to monitors (3-monitor setup)
+# DP-2 (leftmost): workspaces 1-3, 11-13
+workspace 1 output DP-2
+workspace 2 output DP-2
+workspace 3 output DP-2
+workspace 11 output DP-2
+workspace 12 output DP-2
+workspace 13 output DP-2
+
+# eDP-1 (middle): workspaces 4-7, 14-17
 workspace 4 output eDP-1
 workspace 5 output eDP-1
 workspace 6 output eDP-1
 workspace 7 output eDP-1
-workspace 8 output eDP-1
-workspace 9 output eDP-1
-workspace 10 output eDP-1
-workspace 11 output HDMI-1-0
-workspace 12 output HDMI-1-0
-workspace 13 output HDMI-1-0
-workspace 14 output HDMI-1-0
-workspace 15 output HDMI-1-0
-workspace 16 output HDMI-1-0
-workspace 17 output HDMI-1-0
+workspace 14 output eDP-1
+workspace 15 output eDP-1
+workspace 16 output eDP-1
+workspace 17 output eDP-1
+
+# HDMI-1-0 (rightmost): workspaces 8-10, 18-20
+workspace 8 output HDMI-1-0
+workspace 9 output HDMI-1-0
+workspace 10 output HDMI-1-0
 workspace 18 output HDMI-1-0
 workspace 19 output HDMI-1-0
 workspace 20 output HDMI-1-0
@@ -328,8 +333,8 @@ bar {
 # Start Process
 ##########################
 exec --no-startup-id picom -b --config ~/.config/picom/picom.conf
-exec i3lock -b --image=$(find ~/.dotfiles/arch/wallpapers -type f | shuf -n 1) -F --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""
+exec i3lock -b --image=$(find ~/.dotfiles/arch/wallpapers/landscape -type f | shuf -n 1) -F --inside-color=#181926 --ring-color=#181926 --insidever-color=#181926 --ringver-color=#8aadf4 --insidewrong-color=#181926 --ringwrong-color=#ed8796 --line-color=#181926 --keyhl-color=#a6da95 --bshl-color=#ed8796 --verif-text="" --wrong-text="" --noinput-text=""
 exec --no-startup-id dunst
 exec_always --no-startup-id autorandr --change --default single
 exec --no-startup-id xbindkeys
-exec_always feh --bg-fill $(find ~/.dotfiles/arch/wallpapers -type f | shuf -n 2)
+exec_always --no-startup-id ~/.dotfiles/arch/wallpaper.sh ~/.dotfiles/arch/wallpapers
