@@ -7,7 +7,7 @@ timer, autologin-to-startx) on NixOS, with two hosts sharing the same modules:
 | host | what it is |
 |---|---|
 | `usb` | portable test stick: removable-EFI GRUB, disko partitioning, zram, volatile journal, broad initrd, plus a `no-nvidia` boot entry for other hardware |
-| `internal` | the real install on the OMEN's NVMe. **Placeholder** until you generate its hardware config |
+| `internal` | the real install on the OMEN's NVMe, next to Windows + Arch (systemd-boot, XBOOTLDR). Hardware config is a **placeholder** until copied from the installed system. See `INSTALL.md` |
 | `installer` | minimal NixOS ISO with git + disko + flakes (to boot and install from) |
 
 > ## Read this first: nothing here has been built or evaluated
@@ -86,6 +86,10 @@ Autologin lands on tty1, `startx` starts i3, i3lock locks the screen (password: 
 Day to day: `sudo nixos-rebuild switch --flake ~/.dotfiles/nixos#usb`.
 
 ## Porting to the internal drive
+
+> **Superseded by [`INSTALL.md`](INSTALL.md).** The current plan keeps Arch (shrink p7, new p8 for NixOS),
+> uses systemd-boot with p5 as XBOOTLDR instead of GRUB, and installs `bootstrap/configuration.nix` first.
+> The steps below are the original wipe-Arch plan, kept for reference.
 
 The point of the host split is that the shared `modules/` and `home/` don't change, only the host does.
 

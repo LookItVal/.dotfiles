@@ -56,7 +56,6 @@ in
 
       # --- misc runtime ---
       efibootmgr
-      os-prober
     ])
     ++ [
       (x "xrandr")

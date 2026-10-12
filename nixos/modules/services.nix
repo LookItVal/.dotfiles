@@ -2,6 +2,7 @@
 {
   virtualisation.docker.enable = true;
   virtualisation.podman.enable = true; # no dockerCompat: docker is the `docker` command
+  # (lerd's podman/DNS/port setup is in lerd.nix, enabled per host)
 
   services.gvfs.enable = true;          # Thunar trash/mounts/network
   services.tumbler.enable = true;       # thumbnails

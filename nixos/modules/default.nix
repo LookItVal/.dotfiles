@@ -5,6 +5,7 @@
     ./boot-common.nix
     ./lean.nix
     ./nvidia.nix
+    ./lerd.nix
     ./desktop-i3.nix
     ./audio.nix
     ./fonts.nix

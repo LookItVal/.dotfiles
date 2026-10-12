@@ -49,7 +49,7 @@ export VISUAL=nvim
 # general aliases
 alias pls='sudo $(fc -ln -1)'
 alias fetch='fastfetch --config ~/.config/fastfetch/config.jsonc'
-alias reboot-windows='sudo grub-reboot "Windows Boot Manager" && reboot'
+alias reboot-windows='systemctl reboot --boot-loader-entry=auto-windows'
 
 # get os
 os=$(uname -s)

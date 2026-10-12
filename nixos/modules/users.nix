@@ -5,9 +5,9 @@
     description = "Quinn Valencia Cecil";
     shell = pkgs.zsh;
     extraGroups = [ "wheel" "video" "audio" "docker" "networkmanager" ];
-    # TEST-STICK ONLY. i3 locks the screen at login (see i3 config), so you
-    # need a working password. Change it with `passwd` on first boot, then
-    # replace this with hashedPasswordFile / hashedPassword.
+    # Only applies when the user is first created (fresh `usb` stick installs).
+    # On `internal`, val already exists from the bootstrap install, so the password
+    # set there with `passwd` is kept and this line has no effect.
     initialPassword = "changeme";
   };
 

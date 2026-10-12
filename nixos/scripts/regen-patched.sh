@@ -13,7 +13,8 @@
 #   * i3 config: /home/val/... and ~/.dotfiles/arch/... -> ~/.config / ~/.local
 #   * wallpaper.sh: no hardcoded DISPLAY/XAUTHORITY/user, default dir under $HOME
 #   * zshrc / profile.sh: treat `nixos` like `arch` (no tmux auto-attach, startx on
-#     tty1), no hardcoded /home/val, `exa` alias -> `eza` (exa isn't installed)
+#     tty1), no hardcoded /home/val, `exa` alias -> `eza` (exa isn't installed),
+#     `reboot-windows` -> systemd-boot one-shot entry instead of grub-reboot
 #
 # Each rewrite is asserted, so upstream drift makes this script fail loudly
 # instead of silently producing an unpatched file.
@@ -91,9 +92,11 @@ sed \
   -e 's|/home/val|$HOME|g' \
   -e "s|^alias l='exa'|alias l='eza'|" \
   -e 's|^if \[ \$os != "arch" \]; then|if [ $os != "arch" ] \&\& [ $os != "nixos" ]; then|' \
+  -e "s|^alias reboot-windows=.*grub-reboot.*\$|alias reboot-windows='systemctl reboot --boot-loader-entry=auto-windows'|" \
   "$repo/zshrc" > "$out/zshrc"
 assert "$out/zshrc" '[ $os != "nixos" ]'
 assert "$out/zshrc" "alias l='eza'"
+assert "$out/zshrc" "--boot-loader-entry=auto-windows"
 
 sed \
   -e 's|^if \[ \$os != "arch" \]; then|if [ $os != "arch" ] \&\& [ $os != "nixos" ]; then|' \
