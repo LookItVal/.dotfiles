@@ -51,6 +51,9 @@ alias pls='sudo $(fc -ln -1)'
 alias fetch='fastfetch --config ~/.config/fastfetch/config.jsonc'
 alias reboot-windows='sudo grub-reboot "Windows Boot Manager" && reboot'
 
+# claude versions
+alias claude-personal='CLAUDE_CONFIG_DIR="$HOME/.claude-personal" claude'
+
 # get os
 os=$(uname -s)
 if [ $os = "Darwin" ]; then
