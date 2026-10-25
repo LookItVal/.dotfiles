@@ -1,5 +1,5 @@
-# Services every server runs: remote login and name discovery.
-{ ... }:
+# Services every server runs: remote login, name discovery, web dashboard.
+{ config, ... }:
 {
   # SSH. Opens port 22 in the firewall automatically.
   services.openssh = {
@@ -40,5 +40,13 @@
       enable = true;
       addresses = true;
     };
+  };
+
+  # Cockpit web dashboard: https://<hostname>.local:9090, log in as val.
+  # It rejects logins from addresses not listed here (only localhost by default).
+  services.cockpit = {
+    enable = true;
+    openFirewall = true;
+    allowed-origins = [ "https://${config.networking.hostName}.local:9090" ];
   };
 }
