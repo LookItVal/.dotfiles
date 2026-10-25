@@ -2,7 +2,7 @@ ZIM_HOME=~/.config/zsh/zim
 ZDOTDIR=~/.config/zsh/
 
 # Lerd completions path (must be set before completion system is initialized)
-fpath=(/home/val/.local/share/zsh/site-functions $fpath)
+fpath=($HOME/.local/share/zsh/site-functions $fpath)
 
 # Stolen from Tyler, im not using this now
 # Used by zsh-tab-title module
@@ -27,7 +27,7 @@ source ${ZIM_HOME}/init.zsh
 
 # Aliases
 # exa aliases
-alias l='exa'
+alias l='eza'
 alias ls='l'
 alias la='l -a'
 alias lr='l --tree'
@@ -74,8 +74,8 @@ if [ $os = "ubuntu" ]; then
   export PATH=$PATH:/snap/bin
 fi
 
-# if os is not arch
-if [ $os != "arch" ]; then
+# if os is not arch and tmux is installed
+if [ $os != "arch" ] && (( $+commands[tmux] )); then
   # Open or attach to tmux session
   if [ -z "$TMUX" ]; then
     tmux has-session 2>/dev/null
@@ -90,7 +90,7 @@ fi
 
 
 # Added by Lerd installer
-export PATH="/home/val/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 
 # Lerd
-export PATH="/home/val/.local/share/lerd/bin:$PATH"
+export PATH="$HOME/.local/share/lerd/bin:$PATH"
