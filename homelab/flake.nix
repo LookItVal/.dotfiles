@@ -23,6 +23,7 @@
       # nixos-rebuild switch --flake ~/.dotfiles/homelab#node2
       nixosConfigurations = {
         node2 = mkServer "node2";
+        node3 = mkServer "node3";
       };
     };
 }
