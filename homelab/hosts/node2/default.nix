@@ -6,7 +6,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nixos"; # TODO: rename to "node2" once the flake works
+  networking.hostName = "node2";
 
   # The NixOS version this machine was first installed with. Never change it.
   system.stateVersion = "26.05";

@@ -14,6 +14,7 @@
         nixpkgs.lib.nixosSystem {
           modules = [
             ./common/base.nix
+            ./common/server.nix
             ./hosts/${name}
           ];
         };
