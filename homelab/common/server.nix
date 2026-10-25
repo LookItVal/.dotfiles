@@ -16,6 +16,21 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHrH8bsWGbEGiDFmb8jcy9h9jRjzZZ2N4ej+jdUwdPTS"
   ];
 
+  # Never sleep. Old laptops run these closed, so ignore the lid,
+  # and remove the sleep states entirely so nothing else can trigger them.
+  services.logind.settings.Login = {
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+    HandleLidSwitchDocked = "ignore";
+    IdleAction = "ignore";
+  };
+  systemd.targets = {
+    sleep.enable = false;
+    suspend.enable = false;
+    hibernate.enable = false;
+    hybrid-sleep.enable = false;
+  };
+
   # Avahi (mDNS): makes this machine reachable as <hostname>.local, and lets it
   # resolve other .local names. Opens UDP 5353 in the firewall automatically.
   services.avahi = {
