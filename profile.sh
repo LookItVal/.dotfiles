@@ -14,13 +14,13 @@ if [ $os =  "Linux" ]; then
   fi
 fi
 
-if [ $os != "arch" ]; then
+if [ $os != "arch" ] && [ $os != "nixos" ] && (( $+commands[tmux] )); then
   if [ -z "$TMUX" ]; then
     tmux attach || exec tmux new-session
   fi
 fi
 
-if [ $os = "arch" ]; then
+if { [ $os = "arch" ] || [ $os = "nixos" ]; } && (( $+commands[startx] )); then
   # only on a real console login on tty1, never in a terminal emulator
   # or a non-interactive shell (e.g. tooling that sources this file)
   if [[ -o interactive && -z $DISPLAY && $TTY == /dev/tty1 ]]; then

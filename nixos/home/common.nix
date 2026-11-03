@@ -1,4 +1,4 @@
-# home-manager config for val on the servers.
+# home-manager config for val on every machine, desktop and server.
 #
 # The dotfiles are linked "live": ~/.zshrc points at ~/.dotfiles/zshrc itself,
 # not a copy, so `git pull` is enough to pick up changes, no rebuild needed.
@@ -30,5 +30,6 @@ in
     eza
     bat
     fzf
+    (callPackage ../pkgs/neoclear { }) # zshrc aliases clear to it when installed
   ];
 }

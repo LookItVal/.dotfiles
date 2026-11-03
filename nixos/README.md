@@ -1,16 +1,21 @@
-# NixOS port of the Arch dotfiles
+# NixOS: desktops and homelab servers
 
 A flake + home-manager config that reproduces the Arch/i3 setup (i3, i3blocks, picom,
 rofi, dunst, alacritty, zsh+zim, nvim, catppuccin-macchiato everywhere, the wallpaper
-timer, autologin-to-startx) on NixOS, with two hosts sharing the same modules:
+timer, autologin-to-startx) on NixOS, plus the homelab servers. Desktops run nixos-unstable,
+servers run the stable release; zsh and nvim are shared by both.
 
 | host | what it is |
 |---|---|
 | `usb` | portable test stick: removable-EFI GRUB, disko partitioning, zram, volatile journal, broad initrd, plus a `no-nvidia` boot entry for other hardware |
 | `internal` | the real install on the OMEN's NVMe, next to Windows + Arch (systemd-boot, XBOOTLDR). Hardware config is a **placeholder** until copied from the installed system. See `INSTALL.md` |
 | `installer` | minimal NixOS ISO with git + disko + flakes (to boot and install from) |
+| `node2`, `node3` | homelab servers (stable): ssh, avahi, cockpit, never sleep. Deploy on the node with `sudo nixos-rebuild switch --flake ~/.dotfiles/nixos` |
 
-> ## Read this first: nothing here has been built or evaluated
+> ## Read this first: the desktop hosts have never been booted
+> The servers (`node2`, `node3`) are deployed and working. The note below is about the desktop hosts:
+> `usb` now evaluates, `internal` needs its real hardware-configuration.nix.
+>
 > Nix isn't installed on the machine this was written on, so **no `nix eval`, `nix build`,
 > or boot test has ever run**. The code was written from memory of the nixpkgs/home-manager/disko APIs
 > and will almost certainly need a round of fixes on first `nix flake check`.
@@ -22,13 +27,17 @@ timer, autologin-to-startx) on NixOS, with two hosts sharing the same modules:
 
 ```
 nixos/
-  flake.nix                 inputs: nixpkgs-unstable, home-manager, disko
+  flake.nix                 inputs: nixpkgs (unstable) + nixpkgs-stable, a home-manager for each, disko
   hosts/usb/                default.nix (boot/portability), disko.nix (partitions)
   hosts/internal/           default.nix, hardware-configuration.nix (PLACEHOLDER)
-  modules/                  shared NixOS modules (base, users, nvidia, desktop-i3, audio, fonts, packages, ...)
-  home/                     home-manager: files.nix (symlinks), packages.nix, wallpaper.nix
-  home/patched/             generated copies of the few files that can't work unchanged on NixOS
-  scripts/regen-patched.sh  regenerates home/patched/ from the untouched Arch originals
+  hosts/node2/, node3/      servers: default.nix (bootloader, hostname), hardware-configuration.nix
+  modules/common/           every machine (zsh)
+  modules/desktop/          desktops (base, users, nvidia, desktop-i3, audio, fonts, packages, ...)
+  modules/server/           servers (base, ssh/avahi/cockpit/no-sleep, shell + home-manager)
+  home/common.nix           every machine: live links for zshrc, config/zsh, config/nvim
+  home/desktop/             desktop home-manager: files.nix (symlinks), packages.nix, wallpaper.nix
+  home/desktop/patched/     generated copies of the few files that can't work unchanged on NixOS
+  scripts/regen-patched.sh  regenerates home/desktop/patched/ from the untouched Arch originals
   INVENTORY.md              every pacman/AUR package + config file, and how it maps
   TODO.md                   unverified bits, decisions needed
 ```
@@ -46,8 +55,8 @@ copies. If you edit an original that has a patched copy, run `./scripts/regen-pa
    I did not stage anything (your index has the wallpaper renames staged and I left it alone).
 2. **Must be evaluated as a git flake** (`nixos-rebuild --flake ./nixos#usb` from inside the repo,
    or `git+file:///path?dir=nixos`), *not* `path:`. The modules reference `../../config` etc. outside `nixos/`.
-3. `home/files.nix` links `~/.config/nvim` to **`~/.dotfiles/config/nvim`** (live), so clone the repo to `~/.dotfiles` on the new system.
-4. The user password is `changeme` (`modules/users.nix`) so you can get past the i3lock screen. Change it on first boot.
+3. `home/common.nix` links `~/.zshrc`, `~/.config/zsh` and `~/.config/nvim` to **`~/.dotfiles/...`** (live), so clone the repo to `~/.dotfiles` on the new system.
+4. The user password is `changeme` (`modules/desktop/users.nix`) so you can get past the i3lock screen. Change it on first boot.
 
 ## Building the USB stick
 

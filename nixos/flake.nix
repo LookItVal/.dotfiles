@@ -1,12 +1,20 @@
 {
-  description = "val's NixOS config, ported from the Arch dotfiles";
+  description = "val's NixOS machines: desktops (rolling) and homelab servers (stable)";
 
   inputs = {
+    # Desktops: rolling release.
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Servers: stable release, upgraded on purpose every May/November.
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
 
+    # home-manager's branch has to match the nixpkgs it runs on.
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    home-manager-stable = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
     };
 
     disko = {
@@ -15,11 +23,11 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, disko, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-stable, home-manager, home-manager-stable, disko, ... }@inputs:
     let
       system = "x86_64-linux";
 
-      # Passed to every NixOS module AND every home-manager module.
+      # Passed to every desktop NixOS module AND every desktop home-manager module.
       specialArgs = {
         inherit inputs;
         # nixpkgs is mid-way through moving xorg.<tool> to top-level <tool>.
@@ -27,27 +35,43 @@
         xpkg = pkgs: name: pkgs.${name} or pkgs.xorg.${name};
       };
 
-      mkHost = extraModules:
+      mkDesktop = extraModules:
         nixpkgs.lib.nixosSystem {
           inherit system specialArgs;
           modules = [
-            ./modules
+            ./modules/common
+            ./modules/desktop
             home-manager.nixosModules.home-manager
           ] ++ extraModules;
+        };
+
+      # Every server = the shared modules + its own hosts/<name> folder.
+      mkServer = name:
+        nixpkgs-stable.lib.nixosSystem {
+          modules = [
+            home-manager-stable.nixosModules.home-manager
+            ./modules/common
+            ./modules/server
+            ./hosts/${name}
+          ];
         };
     in
     {
       nixosConfigurations = {
         # Portable test stick: boots on (almost) any UEFI machine. Same
         # modules as `internal`, only hardware/boot bits differ.
-        usb = mkHost [
+        usb = mkDesktop [
           disko.nixosModules.disko
           ./hosts/usb
         ];
 
         # The real install on the laptop's internal NVMe. hardware-configuration
         # is a placeholder until you run nixos-generate-config on the machine.
-        internal = mkHost [ ./hosts/internal ];
+        internal = mkDesktop [ ./hosts/internal ];
+
+        # Homelab: nixos-rebuild switch --flake ~/.dotfiles/nixos
+        node2 = mkServer "node2";
+        node3 = mkServer "node3";
 
         # Minimal installer ISO with flakes + disko + git, for the
         # "boot an ISO and run nixos-install --flake" route.
@@ -67,8 +91,13 @@
         };
       };
 
-      # nix build .#iso  ->  result/iso/*.iso
-      packages.${system}.iso =
-        self.nixosConfigurations.installer.config.system.build.isoImage;
+      packages.${system} = {
+        # nix build .#iso  ->  result/iso/*.iso
+        iso = self.nixosConfigurations.installer.config.system.build.isoImage;
+
+        # Our own packages. Also installable on non-NixOS machines with Nix:
+        #   nix profile add ~/.dotfiles/nixos#neoclear
+        neoclear = nixpkgs.legacyPackages.${system}.callPackage ./pkgs/neoclear { };
+      };
     };
 }

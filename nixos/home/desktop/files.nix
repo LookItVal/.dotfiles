@@ -1,12 +1,12 @@
 # Links the dotfiles into $HOME.
 #
-# Sources are relative paths into the repo (../../config etc). That only works
+# Sources are relative paths into the repo (../../../config etc). That only works
 # when the flake is evaluated as a *git* flake (nixos-rebuild --flake ./nixos#host
 # from inside the repo) so that the whole repo is the flake source. It will
 # fail with `path:` flakes. Also: only git-TRACKED files are visible to the flake.
 { config, lib, pkgs, ... }:
 let
-  repo = ../..;
+  repo = ../../..;
   cfg = repo + "/config";
   patched = ./patched;
 
@@ -34,18 +34,11 @@ in
     "gtk-3.0/settings.ini".source = cfg + "/gtk-3.0/settings.ini";
     "tmux/tmux.conf".source = cfg + "/tmux/tmux.conf";
 
-    # zsh: link individual entries so ~/.config/zsh stays a real, writable dir
-    # (zim downloads itself into ~/.config/zsh/zim on first run).
-    "zsh/.zimrc".source = cfg + "/zsh/.zimrc";
-    "zsh/modules".source = cfg + "/zsh/modules";
-
-    # nvim: lazy.nvim writes lazy-lock.json next to the config, so link the live checkout.
-    "nvim".source = live "config/nvim";
+    # zsh and nvim are linked in ../common.nix.
   };
 
   home.file = {
-    ".zshrc".source = patched + "/zshrc";
-    ".zprofile".source = patched + "/zprofile";
+    ".zprofile".source = live "profile.sh"; # startx on tty1 (.zshrc is in ../common.nix)
     ".xinitrc".source = repo + "/xinitrc"; # works unchanged
 
     ".local/bin/wallpaper.sh" = {
