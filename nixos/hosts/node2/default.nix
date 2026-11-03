@@ -3,7 +3,8 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../modules/server/k3s-agent.nix
+    # Off until the join token comes from sops.
+    # ../../modules/server/k3s-agent.nix
   ];
 
   boot.loader.systemd-boot.enable = true;
