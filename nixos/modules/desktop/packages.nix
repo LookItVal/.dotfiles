@@ -1,6 +1,6 @@
 # System-wide packages: everything the i3 session, the i3blocks/screenshot/
 # volume scripts, and a sane terminal environment need on PATH.
-# GUI apps live in ../home/packages.nix.
+# GUI apps live in ../../home/desktop/packages.nix.
 #
 # Anything I wasn't sure exists in nixpkgs under this name goes through `maybe`,
 # which warns at eval time instead of failing the whole build. See INVENTORY.md.

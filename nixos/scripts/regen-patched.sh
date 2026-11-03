@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate nixos/home/patched/ from the ORIGINAL Arch dotfiles.
+# Regenerate nixos/home/desktop/patched/ from the ORIGINAL Arch dotfiles.
 #
 # The originals (config/, arch/, zshrc, profile.sh) are never modified. This
 # script copies the ones that cannot work unchanged on NixOS and applies a small,
@@ -12,9 +12,9 @@
 #     (on NixOS ~/.config/i3blocks is a read-only symlink into the store)
 #   * i3 config: /home/val/... and ~/.dotfiles/arch/... -> ~/.config / ~/.local
 #   * wallpaper.sh: no hardcoded DISPLAY/XAUTHORITY/user, default dir under $HOME
-#   * zshrc / profile.sh: treat `nixos` like `arch` (no tmux auto-attach, startx on
-#     tty1), no hardcoded /home/val, `exa` alias -> `eza` (exa isn't installed),
-#     `reboot-windows` -> systemd-boot one-shot entry instead of grub-reboot
+#
+# zshrc and profile.sh are NOT patched: they handle NixOS themselves and are
+# linked live (see home/common.nix and home/desktop/files.nix).
 #
 # Each rewrite is asserted, so upstream drift makes this script fail loudly
 # instead of silently producing an unpatched file.
@@ -22,8 +22,8 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo="$(cd "$here/../.." && pwd)"
-out="$here/../home/patched"
-case "$out" in */nixos/scripts/../home/patched) ;; *) echo "refusing odd out dir: $out" >&2; exit 1 ;; esac
+out="$here/../home/desktop/patched"
+case "$out" in */nixos/scripts/../home/desktop/patched) ;; *) echo "refusing odd out dir: $out" >&2; exit 1 ;; esac
 
 STATE_DIR_EXPR='${XDG_STATE_HOME:-$HOME/.local/state}/i3blocks'
 
@@ -87,34 +87,14 @@ sed -i \
 assert "$out/wallpaper.sh" 'DISPLAY="${DISPLAY:-:0}"'
 assert "$out/wallpaper.sh" '${1:-$HOME/.local/share/wallpapers}'
 
-# --- shell startup files --------------------------------------------------------
-sed \
-  -e 's|/home/val|$HOME|g' \
-  -e "s|^alias l='exa'|alias l='eza'|" \
-  -e 's|^if \[ \$os != "arch" \]; then|if [ $os != "arch" ] \&\& [ $os != "nixos" ]; then|' \
-  -e "s|^alias reboot-windows=.*grub-reboot.*\$|alias reboot-windows='systemctl reboot --boot-loader-entry=auto-windows'|" \
-  "$repo/zshrc" > "$out/zshrc"
-assert "$out/zshrc" '[ $os != "nixos" ]'
-assert "$out/zshrc" "alias l='eza'"
-assert "$out/zshrc" "--boot-loader-entry=auto-windows"
-
-sed \
-  -e 's|^if \[ \$os != "arch" \]; then|if [ $os != "arch" ] \&\& [ $os != "nixos" ]; then|' \
-  -e 's|^if \[ \$os = "arch" \]; then|if [ $os = "arch" ] \|\| [ $os = "nixos" ]; then|' \
-  "$repo/profile.sh" > "$out/zprofile"
-assert "$out/zprofile" '[ $os = "nixos" ]'
-assert "$out/zprofile" '[ $os != "nixos" ]'
-sed -i '1s|^#!/bin/zsh$|#!/usr/bin/env zsh|' "$out/zprofile"
-
 # --- syntax check ---------------------------------------------------------------
 fail=0
-for f in "$out"/i3/* "$out"/i3blocks/*.sh "$out"/dunst/*.sh "$out/wallpaper.sh" "$out/zprofile"; do
+for f in "$out"/i3/* "$out"/i3blocks/*.sh "$out"/dunst/*.sh "$out/wallpaper.sh"; do
   [ "$f" = "$out/i3/config" ] && continue
   case "$(head -n1 "$f")" in
     *zsh*) zsh -n "$f" || fail=1 ;;
     *bash*) bash -n "$f" || fail=1 ;;
   esac
 done
-zsh -n "$out/zshrc" || fail=1
 [ "$fail" = 0 ] || { echo "syntax check failed" >&2; exit 1; }
 echo "regenerated $out"

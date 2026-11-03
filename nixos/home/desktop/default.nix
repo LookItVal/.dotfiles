@@ -1,23 +1,18 @@
 # home-manager config for `val`.
 #
-# Strategy for the first pass: keep the original files in ../../config as the
+# Strategy for the first pass: keep the original files in ../../../config as the
 # single source of truth and just link them into place (see files.nix). Only
 # files that cannot work unchanged on NixOS are patched copies in ./patched
-# (regenerate with ../scripts/regen-patched.sh). Converting configs to native
+# (regenerate with ../../scripts/regen-patched.sh). Converting configs to native
 # home-manager options (programs.alacritty, services.dunst, ...) can come later.
 { config, lib, pkgs, ... }:
 {
   imports = [
+    ../common.nix
     ./files.nix
     ./packages.nix
     ./wallpaper.nix
   ];
-
-  home = {
-    username = "val";
-    homeDirectory = "/home/val";
-    stateVersion = "26.05"; # match system.stateVersion; see TODO.md
-  };
 
   # config/git/config -> declarative (the original hardcodes /usr/bin/gh)
   programs.git = {

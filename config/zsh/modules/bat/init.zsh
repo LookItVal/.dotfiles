@@ -6,7 +6,7 @@ if (( ! ${+commands[bat]} )); then
   return 1
 fi
 
-export BAT_THEME="Solarized (light)"
+export BAT_THEME="Catppuccin Macchiato" # same palette as fzf/gtk
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export MANROFFOPT="-c"
 alias cat='bat'

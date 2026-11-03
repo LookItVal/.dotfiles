@@ -9,7 +9,7 @@ from memory. Confidence: ✓ confident, ~ probably right, ? guess / may have bee
 
 | Repo file | NixOS handling | Notes |
 |---|---|---|
-| `config/i3/config` | **patched copy** `home/patched/i3/config` -> `~/.config/i3` | `/home/val` and `~/.dotfiles/arch/...` paths rewritten. Monitor names `DP-2`/`eDP-1`/`HDMI-1-0` kept, may differ under NixOS PRIME (see TODO). |
+| `config/i3/config` | **patched copy** `home/desktop/patched/i3/config` -> `~/.config/i3` | `/home/val` and `~/.dotfiles/arch/...` paths rewritten. Monitor names `DP-2`/`eDP-1`/`HDMI-1-0` kept, may differ under NixOS PRIME (see TODO). |
 | `config/i3/*.sh`, `take-ss`, `record-screen` | patched copy (zsh shebangs -> `env`) | `take-ss`/`record-screen` were already `env bash`, unchanged otherwise. Need `file`, `maim`, `xdotool`, `xclip`, `ffmpeg`, `jq`, `libnotify`. |
 | `config/i3blocks/*` | **patched copy** | State files (`.toggle_*`, caches, battery history) moved from `~/.config/i3blocks/` to `~/.local/state/i3blocks/` because the config dir is a read-only store link. |
 | `config/dunst/dunstrc`, `sounds/` | linked as-is | |
@@ -26,21 +26,21 @@ from memory. Confidence: ✓ confident, ~ probably right, ? guess / may have bee
 | `config/zsh/.zimrc`, `modules/` | linked as-is | zim itself is downloaded at first shell start (needs `curl` + network) |
 | `config/nvim/*` | **live symlink** to `~/.dotfiles/config/nvim` | lazy.nvim writes into the config dir; repo must live at `~/.dotfiles` |
 | `config/git/config` | replaced by `programs.git` + `programs.gh` | original hardcoded `/usr/bin/gh` |
-| `config/mimeapps.list` | `xdg.mimeApps` in `home/default.nix` | |
+| `config/mimeapps.list` | `xdg.mimeApps` in `home/desktop/default.nix` | |
 | `config/user-dirs.dirs` | `xdg.userDirs` | |
-| `config/xdg-desktop-portal/portals.conf` | `xdg.portal` in `modules/desktop-i3.nix` | original section header is misspelled `[preffered]` so it probably never worked as intended |
-| `zshrc` | **patched copy** -> `~/.zshrc` | nixos treated like arch (no tmux auto-attach); `/home/val` -> `$HOME`; `alias l='exa'` -> `eza` |
-| `profile.sh` | **patched copy** -> `~/.zprofile` | `exec startx` on tty1 also for `nixos` |
+| `config/xdg-desktop-portal/portals.conf` | `xdg.portal` in `modules/desktop/desktop-i3.nix` | original section header is misspelled `[preffered]` so it probably never worked as intended |
+| `zshrc` | live link -> `~/.zshrc` (`home/common.nix`) | handles NixOS itself: no tmux auto-attach, systemd-boot `reboot-windows` |
+| `profile.sh` | live link -> `~/.zprofile` (`home/desktop/files.nix`) | handles NixOS itself: `exec startx` on tty1 when startx is installed |
 | `xinitrc` | linked as-is -> `~/.xinitrc` | needs `xrdb`, `dbus-launch`, `dbus-update-activation-environment` on PATH |
 | `arch/wallpaper.sh` | **patched copy** -> `~/.local/bin/wallpaper.sh` | no hardcoded DISPLAY/XAUTHORITY/user |
-| `arch/wallpaper.service` + `.timer` | `systemd.user.services/timers.wallpaper` (`home/wallpaper.nix`) | was a *system* unit under `/etc/systemd/system`; now a user unit |
+| `arch/wallpaper.service` + `.timer` | `systemd.user.services/timers.wallpaper` (`home/desktop/wallpaper.nix`) | was a *system* unit under `/etc/systemd/system`; now a user unit |
 | `arch/wallpapers/` (285 MB) | linked -> `~/.local/share/wallpapers` | `portrait/` is currently **untracked** -> invisible to the flake until `git add`ed |
 | `arch/autologin.conf` | `services.getty.autologinUser` (+`autologinOnce`) | Arch autologged in on tty1 only; NixOS option applies to all VTs |
 | `init.sh`, `init/*` | **not ported** | pacman/yay/grub/spicetify bootstrap; superseded by the flake. Mac/ubuntu parts irrelevant. |
 | `config/spicetify/*` | **not ported** | spicetify patches the installed Spotify in place, which can't work on the read-only store. Use the `spicetify-nix` flake later. |
 | `config/neofetch/*` | not ported | replaced by fastfetch long ago |
 | `config/{kdeglobals,QtProject.conf,htop/htoprc,pavucontrol.ini,trashrc,nwg-look,flameshot/flameshot.ini,Maui,arkrc,config,nextjs-nodejs}` | **not ported** | mutable app state, written by the apps themselves (read-only links would break saving). `flameshot.ini` also hardcodes a project path. Seed them by hand if you miss them. |
-| *(not in repo)* `~/.xbindkeysrc` | inlined in `home/files.nix` | mouse buttons 8/9 -> Delete/Return via xdotool |
+| *(not in repo)* `~/.xbindkeysrc` | inlined in `home/desktop/files.nix` | mouse buttons 8/9 -> Delete/Return via xdotool |
 | `/etc/X11/xorg.conf.d/10-nvidia-drm-outputclass.conf` | handled by `hardware.nvidia` | |
 | mkinitcpio `MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)` + cmdline `nvidia_drm.modeset=1 nvidia_drm.fbdev=1` | `modesetting.enable` + `boot.kernelParams` | early-KMS initrd modules not replicated (usually unnecessary on NixOS) |
 
@@ -65,7 +65,7 @@ from memory. Confidence: ✓ confident, ~ probably right, ? guess / may have bee
 | networkmanager, dnsmasq, networkmanager-dispatcher-ntpd, ntp | `networking.networkmanager.enable`; time sync is `systemd-timesyncd` by default ✓ (dnsmasq not needed; NM spawns its own) |
 | bluez, bluez-utils | `hardware.bluetooth.enable` ✓ |
 | pipewire-pulse, pipewire-docs | `services.pipewire.pulse.enable` ✓ (docs skipped) |
-| nvidia-open, nvidia-utils, nvidia-prime | `hardware.nvidia` (open + PRIME), `modules/nvidia.nix` ✓ |
+| nvidia-open, nvidia-utils, nvidia-prime | `hardware.nvidia` (open + PRIME), `modules/desktop/nvidia.nix` ✓ |
 | docker, docker-compose | `virtualisation.docker.enable` ✓ + `docker-compose` pkg ✓ |
 | podman | `virtualisation.podman.enable` ✓ |
 | tailscale | `services.tailscale.enable` ✓ |
@@ -169,7 +169,7 @@ nixpkgs ≥ 25.05 has one attr per family: `nerd-fonts.<name>`.
 | otf-droid-nerd | `droid-sans-mono` | ✓ | otf-firamono-nerd | `fira-mono` | ✓ |
 | otf-geist-mono-nerd | `geist-mono` | ✓ | | | |
 
-`modules/fonts.nix` installs a curated subset by default (everything the configs
+`modules/desktop/fonts.nix` installs a curated subset by default (everything the configs
 actually reference: FiraCode, Fira Mono, Hack + favourites) and `my.fonts.allNerdFonts = true`
 installs every Nerd Font via `attrValues pkgs.nerd-fonts`, so none of the per-font attr names above
 need to be right for that path.

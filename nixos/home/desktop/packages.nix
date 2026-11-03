@@ -1,7 +1,7 @@
 # User-level GUI apps and dev tools (pacman explicit + AUR). See INVENTORY.md.
 { lib, pkgs, osConfig ? null, ... }:
 let
-  # my.lean (see ../modules/lean.nix) drops the `heavy` list for small test sticks.
+  # my.lean (see ../../modules/desktop/lean.nix) drops the `heavy` list for small test sticks.
   lean = osConfig != null && (osConfig.my.lean or false);
   maybe = name:
     if pkgs ? ${name} then [ pkgs.${name} ]

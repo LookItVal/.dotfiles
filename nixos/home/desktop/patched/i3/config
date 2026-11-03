@@ -243,6 +243,16 @@ workspace 15 output eDP-1
 workspace 16 output eDP-1
 workspace 17 output eDP-1
 
+# eDP-2 (middle dupliacte): workspaces 4-7, 14-17
+workspace 4 output eDP-2
+workspace 5 output eDP-2
+workspace 6 output eDP-2
+workspace 7 output eDP-2
+workspace 14 output eDP-2
+workspace 15 output eDP-2
+workspace 16 output eDP-2
+workspace 17 output eDP-2
+
 # HDMI-1-0 (rightmost): workspaces 8-10, 18-20
 workspace 8 output HDMI-1-0
 workspace 9 output HDMI-1-0
