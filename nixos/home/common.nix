@@ -30,6 +30,7 @@ in
     eza
     bat
     fzf
+    fd # fzf's Ctrl-T / Alt-C lists (colored via LS_COLORS)
     (callPackage ../pkgs/neoclear { }) # zshrc aliases clear to it when installed
   ];
 }
