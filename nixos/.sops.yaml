@@ -1,0 +1,18 @@
+# Who can decrypt the files in secrets/. sops reads this when creating or
+# re-keying a file (after adding a machine: sops updatekeys secrets/homelab.yaml).
+#
+# laptop: ~/.config/sops/age/keys.txt (back it up, it's the master key)
+# servers: their SSH host key, converted with
+#   ssh-keyscan -t ed25519 <host> | nix run nixpkgs#ssh-to-age
+keys:
+  - &laptop age18zk86h3vyscuzmdn5dvktdwlt9knakd2fdfrnaw52eakmu84w5yq223aa0
+  - &node2 age1cyg0ks4daqe89te7hsunjh068js8w8ayulr4wnh3e9904d8xdp2s49axqm
+  - &node3 age137uzgaqf33eww2p98x7y8ttvyznecajrxnyk7atc3sz420vzjemsajcn5f
+
+creation_rules:
+  - path_regex: secrets/[^/]+\.yaml$
+    key_groups:
+      - age:
+          - *laptop
+          - *node2
+          - *node3

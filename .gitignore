@@ -3,3 +3,6 @@
 */.DS_Store
 
 *.zwc
+
+# Private keys that live under ~/.config (which is this repo's config/)
+config/sops/

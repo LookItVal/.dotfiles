@@ -21,9 +21,16 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Encrypted secrets in git (secrets/*.yaml), decrypted on each server
+    # with its SSH host key. See .sops.yaml for who can decrypt what.
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-stable, home-manager, home-manager-stable, disko, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-stable, home-manager, home-manager-stable, disko, sops-nix, ... }@inputs:
     let
       system = "x86_64-linux";
 
@@ -50,6 +57,7 @@
         nixpkgs-stable.lib.nixosSystem {
           modules = [
             home-manager-stable.nixosModules.home-manager
+            sops-nix.nixosModules.sops
             ./modules/common
             ./modules/server
             ./hosts/${name}
