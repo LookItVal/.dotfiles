@@ -1,170 +1,99 @@
+/* Catppuccin Macchiato card theme — matches ~/.config/claude/usage-menu.sh */
 @import "catppuccin-macchiato"
 
-* {
-  selected-active-foreground:  @background;
-  lightfg:                     @text;
-  separatorcolor:              @foreground;
-  urgent-foreground:           @red;
-  alternate-urgent-background: @lightbg;
-  lightbg:                     @mantle;
-  background-color:            transparent;
-  border-color:                @foreground;
-  normal-background:           @background;
-  selected-urgent-background:  @red;
-  alternate-active-background: @lightbg;
-  spacing:                     2;
-  alternate-normal-foreground: @foreground;
-  urgent-background:           @background;
-  selected-normal-foreground:  @lightbg;
-  active-foreground:           @blue;
-  background:                  @base;
-  selected-active-background:  @blue;
-  active-background:           @background;
-  selected-normal-background:  @lightfg;
-  alternate-normal-background: @lightbg;
-  foreground:                  @text;
-  selected-urgent-foreground:  @background;
-  normal-foreground:           @foreground;
-  alternate-urgent-foreground: @red;
-  alternate-active-foreground: @blue;
+configuration {
+  show-icons:   true;
+  icon-theme:   "Papirus";
+  display-drun: "";
+  display-run:  "";
+  display-window: "";
+  display-combi: "";
+  display-ssh:  "󰣀";
+  drun-display-format: "{name}";
+}
 
+* {
+  font:             "FiraCode Nerd Font 12";
+  background-color: transparent;
+  text-color:       @text;
+  spacing:          0;
+
+  /* Re-point rofi's built-in (light Solarized) color names at Catppuccin, so any widget
+     this file doesn't style explicitly still gets readable colors instead of dark-on-dark. */
+  foreground:                  @text;
+  background:                  @base;
+  lightfg:                     @text;
+  lightbg:                     @mantle;
+  separatorcolor:              @surface1;
+  border-color:                @mauve;
+  normal-foreground:           @text;
+  normal-background:           transparent;
+  alternate-normal-foreground: @text;
+  alternate-normal-background: transparent;
+  selected-normal-foreground:  @text;
+  selected-normal-background:  @surface0;
+  active-foreground:           @blue;
+  urgent-foreground:           @red;
 }
-element {
-    padding: 1px ;
-    cursor:  pointer;
-    spacing: 5px ;
-    border:  0;
-}
-element normal.normal {
-    background-color: @normal-background;
-    text-color:       @normal-foreground;
-}
-element normal.urgent {
-    background-color: @urgent-background;
-    text-color:       @urgent-foreground;
-}
-element normal.active {
-    background-color: @active-background;
-    text-color:       @active-foreground;
-}
-element selected.normal {
-    background-color: @selected-normal-background;
-    text-color:       @selected-normal-foreground;
-}
-element selected.urgent {
-    background-color: @selected-urgent-background;
-    text-color:       @selected-urgent-foreground;
-}
-element selected.active {
-    background-color: @selected-active-background;
-    text-color:       @selected-active-foreground;
-}
-element alternate.normal {
-    background-color: @alternate-normal-background;
-    text-color:       @alternate-normal-foreground;
-}
-element alternate.urgent {
-    background-color: @alternate-urgent-background;
-    text-color:       @alternate-urgent-foreground;
-}
-element alternate.active {
-    background-color: @alternate-active-background;
-    text-color:       @alternate-active-foreground;
-}
-element-text {
-    background-color: transparent;
-    cursor:           inherit;
-    highlight:        inherit;
-    text-color:       inherit;
-}
-element-icon {
-    background-color: transparent;
-    size:             1.0000em ;
-    cursor:           inherit;
-    text-color:       inherit;
-}
+
 window {
-    padding:          5;
-    background-color: @background;
-    border:           1;
+  location:         center;
+  width:            44em;
+  padding:          14px;
+  border:           2px;
+  border-color:     @mauve;
+  border-radius:    10px;
+  background-color: @base;
 }
+
 mainbox {
-    padding: 0;
-    border:  0;
+  children: [ "inputbar", "message", "listview" ];   /* no mode tabs: launcher is apps-only */
+  spacing:  10px;
 }
-message {
-    padding:      1px ;
-    border-color: @separatorcolor;
-    border:       2px dash 0px 0px ;
-}
-textbox {
-    text-color: @foreground;
-}
-listview {
-    padding:      2px 0px 0px ;
-    scrollbar:    true;
-    border-color: @separatorcolor;
-    spacing:      2px ;
-    fixed-height: 0;
-    border:       2px dash 0px 0px ;
-}
-scrollbar {
-    width:        4px ;
-    padding:      0;
-    handle-width: 8px ;
-    border:       0;
-    handle-color: @normal-foreground;
-}
-sidebar {
-    border-color: @separatorcolor;
-    border:       2px dash 0px 0px ;
-}
-button {
-    cursor:     pointer;
-    spacing:    0;
-    text-color: @normal-foreground;
-}
-button selected {
-    background-color: @selected-normal-background;
-    text-color:       @selected-normal-foreground;
-}
-num-filtered-rows {
-    expand:     false;
-    text-color: Gray;
-}
-num-rows {
-    expand:     false;
-    text-color: Gray;
-}
-textbox-num-sep {
-    expand:     false;
-    str:        "/";
-    text-color: Gray;
-}
+
+/* ---- search bar ---- */
 inputbar {
-    padding:    1px ;
-    spacing:    0px ;
-    text-color: @normal-foreground;
-    children:   [ "prompt","textbox-prompt-colon","entry","num-filtered-rows","textbox-num-sep","num-rows","case-indicator" ];
+  children:         [ "prompt", "entry", "num-filtered-rows", "textbox-num-sep", "num-rows" ];
+  padding:          8px 12px;
+  spacing:          10px;
+  border-radius:    6px;
+  background-color: @surface0;
 }
-case-indicator {
-    spacing:    0;
-    text-color: @normal-foreground;
+prompt            { text-color: @mauve; }
+entry             { text-color: @text; cursor-color: @rosewater; placeholder: "Search"; placeholder-color: @overlay0; cursor: text; }
+num-filtered-rows { text-color: @overlay0; expand: false; }
+textbox-num-sep   { text-color: @overlay0; expand: false; str: "/"; }
+num-rows          { text-color: @overlay0; expand: false; }
+
+/* ---- message (used by usage-menu and other -mesg popups) ---- */
+message { padding: 0 0 6px 0; }
+textbox { text-color: @text; }
+
+/* ---- results ---- */
+listview {
+  lines:        8;
+  columns:      1;
+  fixed-height: true;
+  scrollbar:    false;
+  spacing:      6px;
+  cycle:        true;
 }
-entry {
-    text-color:        @normal-foreground;
-    cursor:            text;
-    spacing:           0;
-    placeholder-color: Gray;
-    placeholder:       "Type to filter";
+
+element {
+  padding:       6px 10px;
+  spacing:       10px;
+  border-radius: 6px;
+  cursor:        pointer;
 }
-prompt {
-    spacing:    0;
-    text-color: @normal-foreground;
-}
-textbox-prompt-colon {
-    margin:     0px 0.3000em 0.0000em 0.0000em ;
-    expand:     false;
-    str:        ":";
-    text-color: inherit;
-}
+element normal.normal, element alternate.normal { background-color: transparent; text-color: @text; }
+element normal.urgent, element alternate.urgent { background-color: transparent; text-color: @red; }
+element normal.active, element alternate.active { background-color: transparent; text-color: @blue; }
+element selected.normal { background-color: @surface0; text-color: @text; }
+element selected.urgent { background-color: @red;      text-color: @base; }
+element selected.active { background-color: @surface0; text-color: @blue; }
+
+element-icon { size: 1.2em; cursor: inherit; }
+element-text { text-color: inherit; highlight: bold #c6a0f6; cursor: inherit; vertical-align: 0.5; }
+
+/* ---- rofi -e errors ---- */
+error-message { padding: 14px; border: 2px; border-color: @red; border-radius: 10px; background-color: @base; }

@@ -37,8 +37,18 @@ HLBG_COLOR="${HLBG_COLOR:-#bbbbbb}"
 BORDER_COLOR="${BORDER_COLOR:-#222222}"
 
 # Options not related to colors
-ROFI_TEXT="${ROFI_TEXT:-Menu:}"
-ROFI_OPTIONS=(${ROFI_OPTIONS:--theme-str 'window {width: 11%; border: 2;} listview {scrollbar: false;}' -location 0})
+ROFI_TEXT="${ROFI_TEXT:-⏻  Power}"
+# Look comes from ~/.config/rofi/config.rasi (Catppuccin card); this just shrinks it to a compact menu:
+# no search counters / mode tabs / icons, tighter padding, list sized to the entries.
+DEFAULT_ROFI_THEME='
+window   { width: 15em; padding: 8px; }
+mainbox  { children: [ "inputbar", "listview" ]; spacing: 6px; }
+inputbar { children: [ "prompt", "entry" ]; padding: 4px 10px; }
+listview { fixed-height: false; spacing: 2px; border: 0; }
+element  { padding: 4px 10px; }
+'
+ROFI_THEME="${ROFI_THEME:-$DEFAULT_ROFI_THEME}"
+ROFI_OPTIONS=(-no-show-icons -theme-str "${ROFI_THEME}")
 
 # Zenity options
 ZENITY_TITLE="${ZENITY_TITLE:-Menu}"
@@ -135,10 +145,9 @@ rofi_colors=""
 
 function prepare_launcher() {
   if [[ "$1" == "rofi" ]]; then
-    rofi_colors=(-bc "${BORDER_COLOR}" -bg "${BG_COLOR}" -fg "${FG_COLOR}" \
-        -hlfg "${HLFG_COLOR}" -hlbg "${HLBG_COLOR}")
+    rofi_colors=()   # colors come from the rofi theme
     launcher_exe="rofi"
-    launcher_options=(-dmenu -i -lines "${menu_nrows}" -p "${ROFI_TEXT}" \
+    launcher_options=(-dmenu -i -no-custom -l "${menu_nrows}" -p "${ROFI_TEXT}" \
         "${rofi_colors[@]}" "${ROFI_OPTIONS[@]}")
   elif [[ "$1" == "zenity" ]]; then
     launcher_exe="zenity"
@@ -164,7 +173,7 @@ selection="$(printf '%s\n' "${!menu[@]}" | sort | "${launcher[@]}")"
 
 function ask_confirmation() {
   if [ "${launcher_exe}" == "rofi" ]; then
-    confirmed=$(echo -e "Yes\nNo" | rofi -dmenu -i -lines 2 -p "${selection}?" \
+    confirmed=$(echo -e "Yes\nNo" | rofi -dmenu -i -no-custom -l 2 -p "${selection}?" \
       "${rofi_colors[@]}" "${ROFI_OPTIONS[@]}")
     [ "${confirmed}" == "Yes" ] && confirmed=0
   elif [ "${launcher_exe}" == "zenity" ]; then
