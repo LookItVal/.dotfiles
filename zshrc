@@ -105,6 +105,7 @@ alias pls='sudo $(fc -ln -1)'
 alias fetch='fastfetch --config ~/.config/fastfetch/config.jsonc'
 alias reboot-windows='sudo grub-reboot "Windows Boot Manager" && reboot'
 (( $+commands[neoclear] )) && alias clear='neoclear --directions all'
+(( $+commands[neoclear] )) && alias exit='neoclear --directions all; exit'
 
 # claude versions
 alias claude-personal='CLAUDE_CONFIG_DIR="$HOME/.claude-personal" claude'
