@@ -16,6 +16,8 @@ How it works
   * On success: the rain closes in over the text during a 3 second "shutting down" countdown,
     the screen fades to black, and the machine powers off.
   * On failure nothing is shut down: the end of the log is printed and the machine stays on.
+  * If yay fails, or you press Ctrl+C, the rain pulls back off the screen (the reverse of the
+    pour) before you get your shell back. A second Ctrl+C skips that animation.
   * Ctrl+C cancels the shutdown but does NOT kill yay (it runs in its own process group,
     interrupting a half-finished pacman transaction is a bad idea). yay keeps going, logging
     to the same file.
@@ -28,6 +30,7 @@ import os
 import random
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -44,6 +47,8 @@ GLITCH = 0.03  # per-frame flicker chance of a glyph
 FPS = 24
 HOLE_ROWS = 3  # the football-shaped open window for the text is about this many rows tall each way
 PULSE_LEN = 8
+RETREAT = 1.4  # seconds the rain takes to pull back when the update fails or is cancelled
+_stop = {"n": 0}  # Ctrl+C presses; counted by a signal handler so the UI can animate its exit
 
 CMD = [
     "yay", "-Syu", "--noconfirm", "--sudoloop",
@@ -514,14 +519,16 @@ def demo_schedule():
 
 
 # --------------------------------------------------------------------------- main loop
-def run_ui(proc, logpath, demo, countdown, verb="shutting down"):
+def run_ui(proc, logpath, demo, countdown, verb="shutting down", demo_fail=False):
     prog = Progress()
     rain = Rain()
     disp = 0.0
+    hole, fade = 1.0, 0.0
     offset = 0
     start = last = time.monotonic()
     sched, demo_end = demo_schedule() if demo else ([], 0)
     phase, phase_t = "run", start
+    retreat = None  # (from_disp, from_hole, from_fade, status text, return code or None = cancelled)
 
     enter_screen()
     while True:
@@ -529,11 +536,19 @@ def run_ui(proc, logpath, demo, countdown, verb="shutting down"):
         dt = min(now - last, 0.25)
         last = now
 
+        # Ctrl+C: pull the rain back instead of dropping straight to the shell.
+        if _stop["n"] and phase != "retreat":
+            retreat = (disp, hole, fade, f"✗  cancelled  ·  not {verb}", None)
+            phase, phase_t = "retreat", now
+
         if phase == "run":
             if demo:
                 while sched and sched[0][0] <= now - start:
                     prog.feed(sched.pop(0)[1] + "\n")
-                rc = 0 if (now - start) >= demo_end else None
+                if demo_fail and (now - start) >= demo_end * 0.55:
+                    rc = 1
+                else:
+                    rc = 0 if (now - start) >= demo_end else None
             else:
                 try:
                     with open(logpath, "rb") as f:
@@ -546,7 +561,9 @@ def run_ui(proc, logpath, demo, countdown, verb="shutting down"):
                     pass
                 rc = proc.poll()
             if rc is not None and rc != 0:
-                return rc
+                retreat = (disp, hole, fade, f"✗  update failed (exit {rc})", rc)
+                phase, phase_t = "retreat", now
+                continue
             if rc == 0:
                 prog.all_done = True
             value = prog.tick(dt)
@@ -566,6 +583,17 @@ def run_ui(proc, logpath, demo, countdown, verb="shutting down"):
             status = f"✓  update complete  ·  {verb} in {math.ceil(left)}"
             if e >= countdown:
                 phase, phase_t = "fade", now
+        elif phase == "retreat":
+            d0, h0, f0, status, result = retreat
+            e = (now - phase_t) / RETREAT
+            if e >= 1 or _stop["n"] > 1:  # a second Ctrl+C skips the rest of the animation
+                sys.stdout.write("\x1b[2J\x1b[H")
+                sys.stdout.flush()
+                if result is None:
+                    raise KeyboardInterrupt
+                return result
+            k = e * e * (3 - 2 * e)  # smoothstep: the fronts back out, the window opens, the colour returns
+            disp, hole, fade = d0 * (1 - k), h0 + (1 - h0) * k, f0 * (1 - k)
         else:  # fade to black
             e = now - phase_t
             disp, hole = 1.0, 0.0
@@ -586,10 +614,12 @@ def main():
     ap.add_argument("--no-shutdown", action="store_true", help="update but don't power off")
     ap.add_argument("--restart", action="store_true", help="reboot instead of powering off")
     ap.add_argument("--demo", action="store_true", help="animation with fake progress only")
+    ap.add_argument("--demo-fail", action="store_true", help="like --demo, but the fake update fails partway")
     ap.add_argument("--countdown", type=int, default=3, help="seconds on the closing screen (default 3)")
     ap.add_argument("--log", type=Path, default=DEFAULT_LOG)
     args = ap.parse_args()
     args.countdown = max(1, args.countdown)
+    args.demo = args.demo or args.demo_fail
 
     if not sys.stdout.isatty():
         sys.exit("update-and-shutdown needs a terminal")
@@ -612,9 +642,10 @@ def main():
             env=env, process_group=0,
         )
 
+    signal.signal(signal.SIGINT, lambda *_: _stop.update(n=_stop["n"] + 1))
     try:
         rc = run_ui(proc, args.log, args.demo, args.countdown,
-                    "restarting" if args.restart else "shutting down")
+                    "restarting" if args.restart else "shutting down", args.demo_fail)
         if rc == 0 and not (args.demo or args.no_shutdown):
             # Power off while the screen is still black, so the old terminal doesn't flash back.
             sd = subprocess.run(["sudo", "shutdown", "-r" if args.restart else "-h", "now"])
@@ -635,6 +666,9 @@ def main():
 
     if rc != 0:
         print(f"yay failed (exit code {rc}). NOT {'restarting' if args.restart else 'shutting down'}.\n")
+        if args.demo_fail:
+            print("(demo failure, no real update ran)")
+            return rc
         try:
             tail = args.log.read_text(errors="replace").splitlines()[-30:]
             print("\n".join(tail))
