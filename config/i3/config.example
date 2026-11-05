@@ -1,0 +1,5 @@
+# i3 loads ~/.config/i3/config. On a new machine, copy this file to "config" (it is untracked)
+# and set $mod for that machine. Shared settings live in shared.conf.
+# Mod4 = Super/Windows key, Mod1 = Alt
+set $mod Mod4
+include ~/.config/i3/shared.conf

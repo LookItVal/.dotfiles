@@ -1,3 +1,0 @@
-DB::beginTransaction(); $u=App\Modelsser::factory()->create(); App\Models\BusinessUser::factory()->removed()->create(["user_id"=>$u->id]); App\Models\BusinessUser::factory()->create(["user_id"=>$u->id]); try { App\Models\BusinessUser::factory()->create(["user_id"=>$u->id]); echo "NOT BLOCKED
-"; } catch (Throwable $e) { echo "blocked: ".get_class($e)."
-"; } DB::rollBack();

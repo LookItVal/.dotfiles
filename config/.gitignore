@@ -1,45 +1,43 @@
-iterm2/
-github-copilot/
-gh/
-composer/
-containers/
-cursor/
-Cursor/
-Claude/
-did-you-mean-nodejs/
-figma-linux/
-google-chrome/
-GIMP/
-lerd/
-libreoffice/
-mozilla/
-obsidian/
-outlook-for-linux/
-shopify-app-account-info-nodejs/
-shopify-cli-app-command-nodejs/
-shopify-cli-app-nodejs/
-shopify-cli-host-theme-conf-nodejs/
-shopify-cli-kit-nodejs/
-shopify-cli-theme-conf-nodejs/
-shopify-cli-development-theme-config-nodejs
-shopify-cli-theme-store-password-nodejs/
-sunshine/
-systemd/
-Slack/
-spicetify/
-systemd/
-tmux/
-vlc/
-Code/
-pulse/
-xfce/
-go/
-dconf/
-spotify/
-Thunar/
-xfce4/xfconf/xfce-perchannel-xml/thunar.xml
-xarchiver/
-google-chrome-for-testing/
-google-chrome-headless/
-Moonlight Game Streaming Project/
-RedisInsight/
+# ~/.config is a symlink to this directory, so this repo sees every app's config.
+# WHITELIST: everything is ignored unless it is listed below. To share a new app's
+# config, add a `!/appname/` line to the list.
+# Ignored files are never touched by `git pull`; tracked files that stop being tracked ARE
+# deleted on the other machine, so be careful when removing entries from the whitelist.
+/*
+
+# This file
+!/.gitignore
+
+# ---- Shared configs --------------------------------------------------------
+!/alacritty/
+!/autostart/
+!/claude/
+!/dunst/
+!/fastfetch/
+!/flameshot/
+!/git/
+!/gtk-3.0/
+!/i3/
+!/i3blocks/
+!/neofetch/
+!/networkmanager-dmenu/
+!/nvim/
+!/nwg-look/
+!/picom/
+!/rofi/
+!/scripts/
+!/tmux/
+!/xsettingsd/
+!/zsh/
+
+# ---- Exceptions inside the shared folders ----------------------------------
+# alacritty: editor backups
+/alacritty/*.bak
+# flameshot: flameshot.ini has a hard-coded per-machine save path; the scripts are shared
+/flameshot/*
+!/flameshot/*.sh
+# git: only the main config is shared, not the global ignore file
+/git/*
+!/git/config
+# i3: `config` is per-machine (sets $mod, then includes shared.conf). Copy config.example.
+/i3/config

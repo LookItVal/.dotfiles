@@ -1,0 +1,651 @@
+#!/usr/bin/env python3
+"""update-and-shutdown: unattended `yay -Syu` with a braille-rain progress screen, then power off.
+
+  update-and-shutdown               update, then shut down if (and only if) the update succeeded
+  update-and-shutdown --no-shutdown update, but stay on
+  update-and-shutdown --restart     update, then reboot instead of powering off (alias: update-and-restart)
+  update-and-shutdown --demo        play the animation with fake progress (no update, no shutdown)
+
+How it works
+  * yay runs in the background with --noconfirm; all of its output goes to a log file
+    (~/.cache/update-and-shutdown/last.log).
+  * The screen is a braille "rain" in Catppuccin mauve that pours in from the top and bottom
+    edges. Every column advances on its own, so the fronts stay ragged and never join into a
+    line. A football-shaped window around the status text stays open. How far the rain has
+    poured follows the update's real progress (see Progress below).
+  * On success: the rain closes in over the text during a 3 second "shutting down" countdown,
+    the screen fades to black, and the machine powers off.
+  * On failure nothing is shut down: the end of the log is printed and the machine stays on.
+  * Ctrl+C cancels the shutdown but does NOT kill yay (it runs in its own process group,
+    interrupting a half-finished pacman transaction is a bad idea). yay keeps going, logging
+    to the same file.
+"""
+
+import argparse
+import atexit
+import math
+import os
+import random
+import re
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+MAUVE = (198, 160, 246)  # Catppuccin Macchiato mauve, #c6a0f6
+HEAD = tuple(int(c + (255 - c) * 0.55) for c in MAUVE)  # whitened leading glyph
+TEXT = (202, 211, 245)  # Catppuccin Macchiato text
+TRAIL = 10  # cells of bright trail behind each stream front
+REST = 0.40  # brightness of the poured area behind the trail
+LEVELS = 16  # quantised brightness steps (keeps the escape codes cheap)
+FADE_STEPS = 12
+GLITCH = 0.03  # per-frame flicker chance of a glyph
+FPS = 24
+HOLE_ROWS = 3  # the football-shaped open window for the text is about this many rows tall each way
+PULSE_LEN = 8
+
+CMD = [
+    "yay", "-Syu", "--noconfirm", "--sudoloop",
+    "--answerclean", "None", "--answerdiff", "None", "--answeredit", "None",
+]
+DEFAULT_LOG = Path.home() / ".cache" / "update-and-shutdown" / "last.log"
+
+
+# --------------------------------------------------------------------------- progress model
+# A yay run goes through these stages in order. Stages that don't apply (no repo updates, or no
+# AUR updates) get zero width. Weights are rough guesses at how long each takes.
+ORDER = ["prep", "r_dl", "r_inst", "r_hook", "a_build", "a_inst", "a_hook"]
+WEIGHT = {"prep": 0.08, "r_dl": 0.12, "r_inst": 0.20, "r_hook": 0.03,
+          "a_build": 0.32, "a_inst": 0.17, "a_hook": 0.03}
+
+ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]|\x1b\([A-Za-z]")
+RE_LIST_HEAD = re.compile(r"^:: (\d+) packages? to upgrade/install")
+RE_LIST_ITEM = re.compile(r"^\d+\s+([\w.+-]+)/\S+")
+RE_PKGS = re.compile(r"^Packages? \((\d+)\)")
+RE_DL = re.compile(r"^(\S+) downloading\.\.\.$")
+RE_INST = re.compile(r"^(installing|upgrading|reinstalling|downgrading|removing) (\S+?)\.\.\.$")
+RE_COUNTER = re.compile(r"^\((\d+)/(\d+)\)\s+(.*)")
+RE_SRCINFO = re.compile(r"^:: \((\d+)/(\d+)\) Parsing SRCINFO")
+RE_MAKE = re.compile(r"^==> Making package:\s+(\S+)")
+CHECKS = ("checking keyring", "checking package integrity", "loading package files",
+          "checking for file conflicts", "checking available disk space")
+# makepkg milestones: (log text, progress through one package's build, label)
+BUILD_STEPS = [
+    ("Retrieving sources", 0.08, "fetching sources"), ("Validating source", 0.15, "verifying"),
+    ("Extracting sources", 0.22, "extracting"), ("Sources are ready", 0.28, "extracting"),
+    ("Starting prepare()", 0.32, "preparing"), ("Starting build()", 0.40, "compiling"),
+    ("Starting check()", 0.50, "testing"), ("Starting package()", 0.60, "packaging"),
+    ("Tidying install", 0.68, "packaging"), ("Creating package", 0.75, "packaging"),
+    ("Compressing package", 0.85, "compressing"),
+]
+
+
+class Progress:
+    """Turns yay's log into a monotonic 0..1 value plus a short status label."""
+
+    def __init__(self):
+        self.cur, self.frac = "prep", 0.0
+        self.label = "starting"
+        self.n_repo = self.n_aur = None  # unknown until yay prints its package list
+        self.in_list = False
+        self._cnt = [0, 0]  # repo, aur: counted while the package list prints
+        self.upgrade_started = False
+        self.keyring_seen = 0
+        self.cur_total = 0
+        self.dl = self.inst = self.checks = 0
+        self.prep_making = self.built = 0
+        self.milestone = 0.0
+        self.build_name = ""
+        self.build_step = ""
+        self.all_done = False
+        self.value = 0.0
+        self._tmax = 0.0
+
+    # -- layout
+    def _layout(self):
+        w = {}
+        for s in ORDER:
+            w[s] = WEIGHT[s]
+            if s.startswith("r_") and self.n_repo == 0:
+                w[s] = 0.0
+            if s.startswith("a_") and self.n_aur == 0:
+                w[s] = 0.0
+        total = sum(w.values()) or 1.0
+        pos, out = 0.0, {}
+        for s in ORDER:
+            out[s] = (pos, w[s] / total)
+            pos += w[s] / total
+        return out
+
+    def target(self):
+        if self.all_done:
+            return 1.0
+        start, width = self._layout()[self.cur]
+        self._tmax = max(self._tmax, min(start + width * self.frac, 0.995))
+        return self._tmax
+
+    def _units(self):
+        n = self.cur_total or 3
+        return {"prep": 6, "r_dl": n, "r_inst": n + 5, "r_hook": 4,
+                "a_build": 8 * (self.n_aur or 3), "a_inst": n + 5, "a_hook": 4}[self.cur]
+
+    def soft_cap(self):
+        """How far the bar may drift on its own, without a new log line."""
+        if self.all_done:
+            return 1.0
+        start, width = self._layout()[self.cur]
+        return min(start + width - 0.001, self.target() + 1.5 * width / self._units())
+
+    def tick(self, dt):
+        self.value = max(self.value, self.target())
+        cap = self.soft_cap()
+        if self.value < cap:
+            self.value += (cap - self.value) * (1 - math.exp(-dt * 0.15))
+        return self.value
+
+    # -- feeding
+    def _set(self, stage, frac):
+        """Move forward only; earlier stages count as complete."""
+        i, j = ORDER.index(stage), ORDER.index(self.cur)
+        if i < j:
+            return
+        if i == j:
+            self.frac = max(self.frac, frac)
+        else:
+            self.cur, self.frac = stage, frac
+
+    def feed(self, text):
+        for line in re.split(r"[\r\n]+", text):
+            line = ANSI.sub("", line).strip()
+            if line:
+                self._line(line)
+
+    def _inst_frac(self):
+        return 0.2 * min(self.checks, 5) / 5 + 0.8 * self.inst / max(self.cur_total, 1)
+
+    def _line(self, line):
+        if self.in_list:
+            m = RE_LIST_ITEM.match(line)
+            if m:
+                self._cnt[1 if m.group(1) == "aur" else 0] += 1
+                return
+            self.in_list = False
+            self.n_repo, self.n_aur = self._cnt
+
+        m = RE_LIST_HEAD.match(line)
+        if m:
+            self.in_list = True
+            self._cnt = [0, 0]
+            self.label = "planning the update"
+            self._set("prep", 0.3)
+            return
+        if "there is nothing to do" in line:
+            if self.upgrade_started:
+                self.n_repo = 0
+                if self.n_aur == 0:
+                    self.all_done = True
+                else:
+                    self._set("a_build", 0.0)
+            elif self.n_repo is None:  # yay itself found nothing at all
+                self.all_done = True
+            self.label = "already up to date"
+            return
+        if line.startswith(":: Synchronizing package databases"):
+            self.label = "syncing databases"
+            if self.cur == "prep":
+                self._set("prep", 0.1)
+            return
+        if "Searching AUR for updates" in line:
+            self.label = "searching the AUR"
+            self._set("prep", 0.15)
+            return
+        if line.startswith(":: Starting full system upgrade"):
+            self.upgrade_started = True
+            self.label = "resolving upgrades"
+            self._set("prep", 1.0)
+            if self.n_repo == 0:
+                self._set("a_build", 0.0)
+            return
+        if line.startswith(":: Retrieving packages"):
+            self.label = "downloading packages"
+            self.dl = 0
+            if self.n_repo != 0:
+                self._set("r_dl", 0.0)
+            return
+        m = RE_PKGS.match(line)
+        if m:
+            self.cur_total = int(m.group(1))
+            return
+        m = RE_DL.match(line)
+        if m and self.cur == "r_dl":
+            self.dl += 1
+            name = re.sub(r"-\d.*$", "", m.group(1))
+            self.label = f"downloading {name} ({self.dl}/{self.cur_total})"
+            self._set("r_dl", min(self.dl / max(self.cur_total, 1), 1.0))
+            return
+        if line.startswith(CHECKS[0]):  # "checking keyring": a new transaction starts installing
+            self.keyring_seen += 1
+            self.inst = self.checks = 0
+            stage = "r_inst" if (self.keyring_seen == 1 and self.n_repo != 0) else "a_inst"
+            self.checks = 1
+            self.label = "checking packages"
+            self._set(stage, self._inst_frac())
+            return
+        if line.startswith(CHECKS[1:]) and self.cur in ("r_inst", "a_inst"):
+            self.checks += 1
+            self.label = "checking packages"
+            self._set(self.cur, self._inst_frac())
+            return
+        m = RE_INST.match(line)
+        if m and self.cur in ("r_inst", "a_inst"):
+            self.inst += 1
+            self.label = f"{m.group(1)} {m.group(2)} ({self.inst}/{self.cur_total})"
+            self._set(self.cur, self._inst_frac())
+            return
+        if line.startswith(":: Running post-transaction hooks"):
+            self.label = "running hooks"
+            if self.cur in ("r_dl", "r_inst", "r_hook"):
+                self._set("r_hook", 0.0)
+            elif self.cur in ("a_build", "a_inst", "a_hook"):
+                self._set("a_hook", 0.0)
+            return
+        m = RE_COUNTER.match(line)
+        if m and self.cur in ("r_hook", "a_hook"):
+            n, total = int(m.group(1)), int(m.group(2))
+            self.label = m.group(3)[:48]
+            self._set(self.cur, n / max(total, 1))
+            return
+        m = RE_SRCINFO.match(line)
+        if m and self.cur == "prep":
+            n, total = int(m.group(1)), int(m.group(2))
+            self.label = "reading AUR package info"
+            self._set("prep", 0.7 + 0.3 * n / max(total, 1))
+            return
+
+        # AUR builds. makepkg also runs once per package *before* the upgrade (to fetch sources).
+        m = RE_MAKE.match(line)
+        if m:
+            if not self.upgrade_started:
+                self.prep_making += 1
+                self.label = "fetching AUR sources"
+                self._set("prep", 0.3 + 0.4 * min(self.prep_making / max(self.n_aur or 1, 1), 1.0))
+            else:
+                self.build_name = m.group(1)
+                self._set("a_build", (self.built + self.milestone) / max(self.n_aur or 1, 1))
+                self._build_label()
+            return
+        if self.upgrade_started and self.cur in ("a_build",) or (
+                self.upgrade_started and self.cur in ("r_hook", "prep") and self.build_name):
+            if line.startswith("==> Finished making"):
+                self.built += 1
+                self.milestone = 0.0
+                self.build_step = "done"
+                self._set("a_build", self.built / max(self.n_aur or 1, 1))
+                self._build_label()
+                return
+            for text, ms, step in BUILD_STEPS:
+                if text in line:
+                    self.milestone = max(self.milestone, ms)
+                    self.build_step = step
+                    self._set("a_build", (self.built + self.milestone) / max(self.n_aur or 1, 1))
+                    self._build_label()
+                    return
+
+    def _build_label(self):
+        n = max(self.n_aur or 1, 1)
+        idx = min(self.built + 1, n)
+        step = f" · {self.build_step}" if self.build_step and self.build_step != "done" else ""
+        self.label = f"building {self.build_name} ({idx}/{n}){step}"
+
+
+# --------------------------------------------------------------------------- rendering
+def _fg(rgb, scale=1.0):
+    return "\x1b[38;2;%d;%d;%dm" % tuple(int(c * scale) for c in rgb)
+
+
+IDX_HEAD, IDX_TEXT = LEVELS, LEVELS + 1
+_palettes = {}
+
+
+def palette(fade_step):
+    """colour index -> escape code. 0..LEVELS-1 are mauve at rising brightness."""
+    if fade_step not in _palettes:
+        k = 1 - fade_step / FADE_STEPS
+        pal = [_fg(MAUVE, k * i / (LEVELS - 1)) for i in range(LEVELS)]
+        pal.append(_fg(HEAD, k))
+        pal.append(_fg(TEXT, k))
+        _palettes[fade_step] = pal
+    return _palettes[fade_step]
+
+
+TRAIL_IDX = [round((REST + (1 - REST) * max(0.0, 1 - k / TRAIL)) * (LEVELS - 1)) for k in range(TRAIL + 1)]
+SPINNER = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+
+
+class Rain:
+    N = 1000  # per-column constants, indexed by column % N
+
+    def __init__(self):
+        rnd = random.random
+        self.cols = self.rows = 0
+        self.stagger = [rnd() for _ in range(self.N)]
+        self.wob_w = [0.8 + rnd() * 1.8 for _ in range(self.N)]
+        self.wob_ph = [(rnd() * 6.3, rnd() * 6.3) for _ in range(self.N)]
+        self.pulse_v = [5 + rnd() * 12 for _ in range(self.N)]
+        self.pulse_ph = [(rnd() * 100, rnd() * 100) for _ in range(self.N)]
+        self.glyphs = []
+        self.hw = None
+
+    def _resize(self, cols, rows):
+        self.cols, self.rows = cols, rows
+        self.glyphs = [[random.randrange(256) for _ in range(cols)] for _ in range(rows)]
+
+    def frame(self, p, status, t, hole=1.0, fade=0.0):
+        """p: 0..1 progress. hole: 1 = open window for the text, 0 = closed. fade: 0..1 to black."""
+        cols, rows = shutil.get_terminal_size((80, 24))
+        if (cols, rows) != (self.cols, self.rows):
+            self._resize(cols, rows)
+
+        for _ in range(int(cols * rows * GLITCH)):
+            self.glyphs[random.randrange(rows)][random.randrange(cols)] = random.randrange(256)
+
+        # Half-width of the open window, eased so the edges breathe instead of jumping when the
+        # status text changes length.
+        want = min(cols / 2 - 3, max(20.0, (len(status) + 2) / 2 + 8))
+        self.hw = want if self.hw is None else self.hw + (want - self.hw) * 0.12
+
+        chars = [[" "] * cols for _ in range(rows)]
+        colors = [[-1] * cols for _ in range(rows)]
+        started = p > 0.001
+        mid = rows // 2
+        amp = 2.2 * (0.15 + 0.85 * hole)  # how ragged the fronts are, in rows
+        hw_eff = self.hw * hole
+
+        for c in range(cols):
+            ci = c % self.N
+            # football-shaped window: tall in the middle columns, closing to nothing at its tips
+            dx = abs(c + 0.5 - cols / 2)
+            lens = math.sqrt(1 - (dx / hw_eff) ** 2) if (hw_eff >= 1 and dx < hw_eff) else 0.0
+            h = (HOLE_ROWS + 0.5) * hole * lens
+            # columns start at very different times, so the fronts never line up
+            x = min(1.0, max(0.0, (p - self.stagger[ci] * 0.5) / 0.5))
+            if not started:
+                continue
+            for side, total in ((0, mid), (1, rows - mid)):
+                # how far in from this edge the rain has to travel in this column
+                F = total - h + 2 * (1 - min(1.0, h / 0.75)) + 3 * (1 - hole)
+                wob = amp * math.sin(t * self.wob_w[ci] + self.wob_ph[ci][side])
+                d = max(1, min(rows, round(1 + (F - 1) * x + wob)))
+                pos = (t * self.pulse_v[ci] + self.pulse_ph[ci][side]) % (d + 14)
+                for r in range(d):
+                    row = r if side == 0 else rows - 1 - r
+                    front = d - 1 - r
+                    if front == 0:
+                        idx = IDX_HEAD
+                        g = random.randrange(256)
+                    else:
+                        idx = TRAIL_IDX[min(front, TRAIL)]
+                        g = self.glyphs[row][c]
+                    k = pos - r
+                    if 0 <= k < PULSE_LEN:  # a bright streak sliding towards the front
+                        boost = round((1 - k / PULSE_LEN) * (LEVELS - 1))
+                        if k < 1.5:
+                            idx = IDX_HEAD
+                        elif idx != IDX_HEAD:
+                            idx = max(idx, boost)
+                    # Where the top and bottom streams overlap, keep the brighter of the two, so
+                    # neither side overwrites the other and the closing stays symmetric.
+                    if idx >= colors[row][c]:
+                        chars[row][c] = chr(0x2800 + g)
+                        colors[row][c] = idx
+                if random.random() < 0.06:  # a spark just ahead of the front
+                    r = d + random.randrange(0, 4)
+                    if r < rows:
+                        row = r if side == 0 else rows - 1 - r
+                        if colors[row][c] == -1:
+                            chars[row][c] = chr(0x2800 + random.randrange(256))
+                            colors[row][c] = 3
+
+        # status text in the middle of the window; the closing rain covers it from the edges
+        text = f" {status} "[: max(0, cols - 2)]
+        start = max(0, (cols - len(text)) // 2)
+        for i, ch in enumerate(text):
+            if hole >= 0.999 or colors[mid][start + i] == -1:  # text wins, until the rain closes in
+                chars[mid][start + i] = ch
+                colors[mid][start + i] = IDX_TEXT
+
+        pal = palette(min(FADE_STEPS, round(fade * FADE_STEPS)))
+        out = ["\x1b[H"]
+        for r in range(rows):
+            cur = -2
+            line = []
+            for c in range(cols):
+                ci = colors[r][c]
+                if ci != cur and ci != -1:
+                    line.append(pal[ci])
+                    cur = ci
+                line.append(chars[r][c])
+            out.append("".join(line) + "\x1b[0m")
+            if r < rows - 1:
+                out.append("\r\n")
+        return "".join(out)
+
+
+# --------------------------------------------------------------------------- terminal helpers
+_in_alt = False
+
+
+def enter_screen():
+    global _in_alt
+    if not _in_alt:
+        sys.stdout.write("\x1b[?1049h\x1b[?25l\x1b[2J")
+        sys.stdout.flush()
+        _in_alt = True
+
+
+def leave_screen():
+    global _in_alt
+    if _in_alt:
+        sys.stdout.write("\x1b[0m\x1b[?25h\x1b[?1049l")
+        sys.stdout.flush()
+        _in_alt = False
+
+
+atexit.register(leave_screen)
+
+
+# --------------------------------------------------------------------------- demo source
+def demo_schedule():
+    """Fake log in the same shape as yay's real non-tty output, with plausible timing."""
+    s, t = [], 0.0
+    speed = 0.6
+
+    def add(dt, line):
+        nonlocal t
+        t += dt * speed
+        s.append((t, line))
+
+    repo = ["lz4", "electron43", "firefox", "harfbuzz", "harfbuzz-icu", "libcloudproviders", "python-wcwidth", "mesa"]
+    aur = ["claude-code", "claude-desktop", "visual-studio-code-bin"]
+    add(0.4, ":: Synchronizing package databases...")
+    add(0.5, ":: Searching AUR for updates...")
+    add(0.5, f":: {len(repo) + len(aur)} packages to upgrade/install.")
+    for i, n in enumerate(repo + aur):
+        add(0.02, f"{len(repo) + len(aur) - i:2d}  {'aur' if n in aur else 'extra'}/{n}  1.0-1 -> 1.1-1")
+    add(0.2, '==> Packages to exclude: (eg: "1 2 3", "1-3", "^4" or repo name)')
+    for n in aur:
+        add(1.0, f"==> Making package: {n} 1.1-1 (Wed Nov  4 16:19:25 2026)")
+        add(0.3, "==> Retrieving sources...")
+    for i, n in enumerate(aur, 1):
+        add(0.2, f":: (\x1b[1m{i}/{len(aur)}) Parsing SRCINFO: {n}")
+    add(0.6, ":: Synchronizing package databases...")
+    add(0.6, ":: Starting full system upgrade...")
+    add(0.4, f"Packages ({len(repo)}) " + "  ".join(repo))
+    add(0.4, ":: Retrieving packages...")
+    for n in repo:
+        add(0.9, f" {n}-1.1-1-x86_64 downloading...")
+    for c in CHECKS:
+        add(0.5, c + "...")
+    add(0.3, ":: Processing package changes...")
+    for n in repo:
+        add(0.7, f"upgrading {n}...")
+    add(0.4, ":: Running post-transaction hooks...")
+    for i, h in enumerate(["Arming ConditionNeedsUpdate", "Updating icon theme caches", "Updating the MIME type database"], 1):
+        add(0.6, f"({i}/3) {h}...")
+    for n in aur:
+        add(0.5, f"==> Making package: {n} 1.1-1 (Wed Nov  4 16:19:33 2026)")
+        for line, dt in (("==> Retrieving sources...", 0.4), ("==> Validating source files with sha256sums...", 0.4),
+                         ("==> Extracting sources...", 0.6), ("==> Sources are ready.", 0.3),
+                         ("==> Starting package()...", 0.8), ("==> Tidying install...", 0.6),
+                         ("==> Creating package \"x\"...", 0.5), ("  -> Compressing package...", 2.6),
+                         (f"==> Finished making: {n} 1.1-1 (Wed Nov  4 16:19:38 2026)", 0.4)):
+            add(dt, line)
+    add(0.5, "loading packages...")
+    add(0.3, f"Packages ({len(aur)}) " + "  ".join(aur))
+    for c in CHECKS:
+        add(0.5, c + "...")
+    for n in aur:
+        add(1.4, f"upgrading {n}...")
+    add(0.4, ":: Running post-transaction hooks...")
+    for i, h in enumerate(["Updating the MIME type database", "Updating the desktop file MIME type cache"], 1):
+        add(0.6, f"({i}/2) {h}...")
+    return s, t + 0.8
+
+
+# --------------------------------------------------------------------------- main loop
+def run_ui(proc, logpath, demo, countdown, verb="shutting down"):
+    prog = Progress()
+    rain = Rain()
+    disp = 0.0
+    offset = 0
+    start = last = time.monotonic()
+    sched, demo_end = demo_schedule() if demo else ([], 0)
+    phase, phase_t = "run", start
+
+    enter_screen()
+    while True:
+        now = time.monotonic()
+        dt = min(now - last, 0.25)
+        last = now
+
+        if phase == "run":
+            if demo:
+                while sched and sched[0][0] <= now - start:
+                    prog.feed(sched.pop(0)[1] + "\n")
+                rc = 0 if (now - start) >= demo_end else None
+            else:
+                try:
+                    with open(logpath, "rb") as f:
+                        f.seek(offset)
+                        data = f.read()
+                        offset += len(data)
+                    if data:
+                        prog.feed(data.decode("utf-8", "replace"))
+                except FileNotFoundError:
+                    pass
+                rc = proc.poll()
+            if rc is not None and rc != 0:
+                return rc
+            if rc == 0:
+                prog.all_done = True
+            value = prog.tick(dt)
+            disp += (value - disp) * (1 - math.exp(-dt * (6 if rc == 0 else 2.5)))
+            if rc == 0 and (disp > 0.995 or now - phase_t > 30):
+                phase, phase_t = "countdown", now
+            elapsed = int(now - start)
+            spin = SPINNER[int(now * 12) % len(SPINNER)]
+            status = f"{spin}  {int(disp * 100):3d}%  ·  {prog.label}  ·  {elapsed // 60}:{elapsed % 60:02d}"
+            hole, fade = 1.0, 0.0
+        elif phase == "countdown":
+            e = now - phase_t
+            disp = 1.0
+            left = max(0.0, countdown - e)
+            hole = left / countdown
+            fade = 0.0
+            status = f"✓  update complete  ·  {verb} in {math.ceil(left)}"
+            if e >= countdown:
+                phase, phase_t = "fade", now
+        else:  # fade to black
+            e = now - phase_t
+            disp, hole = 1.0, 0.0
+            fade = min(1.0, e / 0.8)
+            status = ""
+            if e >= 0.8:
+                sys.stdout.write("\x1b[2J\x1b[H")
+                sys.stdout.flush()
+                return 0
+
+        sys.stdout.write(rain.frame(disp, status, now - start, hole, fade))
+        sys.stdout.flush()
+        time.sleep(max(0.0, 1 / FPS - (time.monotonic() - now)))
+
+
+def main():
+    ap = argparse.ArgumentParser(description="yay -Syu with a progress animation, then shutdown")
+    ap.add_argument("--no-shutdown", action="store_true", help="update but don't power off")
+    ap.add_argument("--restart", action="store_true", help="reboot instead of powering off")
+    ap.add_argument("--demo", action="store_true", help="animation with fake progress only")
+    ap.add_argument("--countdown", type=int, default=3, help="seconds on the closing screen (default 3)")
+    ap.add_argument("--log", type=Path, default=DEFAULT_LOG)
+    args = ap.parse_args()
+    args.countdown = max(1, args.countdown)
+
+    if not sys.stdout.isatty():
+        sys.exit("update-and-shutdown needs a terminal")
+    if os.geteuid() == 0:
+        sys.exit("run as your normal user (yay/makepkg refuse to run as root)")
+
+    proc = None
+    if not args.demo:
+        if shutil.which("yay") is None:
+            sys.exit("yay not found")
+        # Authenticate up front so nothing prompts for a password behind the animation.
+        if subprocess.run(["sudo", "-v"]).returncode != 0:
+            sys.exit("sudo authentication failed")
+        args.log.parent.mkdir(parents=True, exist_ok=True)
+        logf = open(args.log, "wb")
+        env = dict(os.environ, LC_ALL="C")  # English output so the log parser works
+        # Own process group: Ctrl+C in this terminal must not hit pacman mid-transaction.
+        proc = subprocess.Popen(
+            CMD, stdin=subprocess.DEVNULL, stdout=logf, stderr=subprocess.STDOUT,
+            env=env, process_group=0,
+        )
+
+    try:
+        rc = run_ui(proc, args.log, args.demo, args.countdown,
+                    "restarting" if args.restart else "shutting down")
+        if rc == 0 and not (args.demo or args.no_shutdown):
+            # Power off while the screen is still black, so the old terminal doesn't flash back.
+            sd = subprocess.run(["sudo", "shutdown", "-r" if args.restart else "-h", "now"])
+            if sd.returncode == 0:
+                time.sleep(60)
+            leave_screen()
+            print(f"{'reboot' if args.restart else 'shutdown'} command failed (exit code {sd.returncode}).")
+            return sd.returncode
+    except KeyboardInterrupt:
+        leave_screen()
+        print(f"\nInterrupted. NOT {'restarting' if args.restart else 'shutting down'}.")
+        if proc is not None and proc.poll() is None:
+            print(f"yay is still running (pid {proc.pid}); log: {args.log}")
+            print("It keeps going in the background; do not kill it mid-transaction.")
+        return 130
+    finally:
+        leave_screen()
+
+    if rc != 0:
+        print(f"yay failed (exit code {rc}). NOT {'restarting' if args.restart else 'shutting down'}.\n")
+        try:
+            tail = args.log.read_text(errors="replace").splitlines()[-30:]
+            print("\n".join(tail))
+        except OSError:
+            pass
+        print(f"\nFull log: {args.log}")
+        return rc
+
+    print("Update finished. Not shutting down or restarting (--demo / --no-shutdown).")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

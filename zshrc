@@ -104,8 +104,10 @@ export VISUAL=nvim
 alias pls='sudo $(fc -ln -1)'
 alias fetch='fastfetch --config ~/.config/fastfetch/config.jsonc'
 alias reboot-windows='sudo grub-reboot "Windows Boot Manager" && reboot'
-(( $+commands[neoclear] )) && alias clear='neoclear --directions all'
-(( $+commands[neoclear] )) && alias exit='neoclear --directions all --duration 400 --fade 150; exit'
+(( $+commands[yay] )) && alias update-and-shutdown='~/.dotfiles/scripts/update-and-shutdown'
+(( $+commands[yay] )) && alias update-and-restart='~/.dotfiles/scripts/update-and-shutdown --restart'
+(( $+commands[neoclear] )) && alias clear='neoclear --directions all --color "#c6a0f6"'
+(( $+commands[neoclear] )) && alias exit='neoclear --directions all --color "#c6a0f6" --duration 400 --fade 150; exit'
 
 # claude versions
 alias claude-personal='CLAUDE_CONFIG_DIR="$HOME/.claude-personal" claude'
