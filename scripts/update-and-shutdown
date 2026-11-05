@@ -5,6 +5,8 @@
   update-and-shutdown --no-shutdown update, but stay on
   update-and-shutdown --restart     update, then reboot instead of powering off (alias: update-and-restart)
   update-and-shutdown --demo        play the animation with fake progress (no update, no shutdown)
+  update-and-shutdown --demo-fail   like --demo, but the fake update fails partway (shows the retreat)
+  update-and-shutdown --single      only use this terminal (default under i3: fullscreen on every monitor)
 
 How it works
   * yay runs in the background with --noconfirm; all of its output goes to a log file
@@ -25,14 +27,18 @@ How it works
 
 import argparse
 import atexit
+import json
 import math
 import os
 import random
 import re
+import select
 import shutil
 import signal
+import socket
 import subprocess
 import sys
+import termios
 import time
 from pathlib import Path
 
@@ -518,8 +524,177 @@ def demo_schedule():
     return s, t + 0.8
 
 
+# --------------------------------------------------------------------------- every monitor
+# Under i3 the animation covers every monitor. This process (the controller) makes its own
+# terminal fullscreen and opens one more fullscreen terminal per other monitor, each running
+# `update-and-shutdown --view <socket>`. The controller streams the animation state to the
+# viewers over a unix socket; each viewer renders it at its own screen size. A viewer exits when
+# the socket closes, so a dead controller can't leave fullscreen windows behind.
+def _i3(*args):
+    try:
+        r = subprocess.run(["i3-msg", *args], capture_output=True, text=True, timeout=3)
+        return json.loads(r.stdout)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+
+
+def _i3_ok(cmd):
+    r = _i3(cmd)
+    return isinstance(r, list) and bool(r) and all(x.get("success") for x in r)
+
+
+class Screens:
+    def __init__(self, enabled):
+        self.srv = self.path = None
+        self.clients, self.procs, self.pending = [], [], {}
+        self.next_try = 0.0
+        self.fullscreened = False
+        self.target = f"[id={os.environ['WINDOWID']}] " if os.environ.get("WINDOWID") else ""
+        if not (enabled and os.environ.get("DISPLAY") and shutil.which("i3-msg") and _i3_ok("nop")):
+            return
+        ws = _i3("-t", "get_workspaces") or []
+        own = next((w["output"] for w in ws if w.get("focused")), None)
+        self.fullscreened = _i3_ok(f"{self.target}fullscreen enable")
+        term = shutil.which("alacritty")
+        try:
+            mons = subprocess.run(["xrandr", "--listmonitors"], capture_output=True, text=True,
+                                  timeout=3).stdout.splitlines()[1:]
+        except (OSError, subprocess.SubprocessError):
+            mons = []
+        names = [m.split()[-1] for m in mons if m.strip()]
+        todo = [n for n in names if n != own]
+        if not term or not todo:
+            return
+        runtime = os.environ.get("XDG_RUNTIME_DIR") or "/tmp"
+        self.path = os.path.join(runtime, f"update-and-shutdown-{os.getpid()}.sock")
+        self.srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.srv.bind(self.path)
+        self.srv.listen(8)
+        self.srv.setblocking(False)
+        now = time.monotonic()
+        for n in todo:
+            self.procs.append(subprocess.Popen(
+                [term, "--title", f"UpdateRain-{n}", "-e", sys.executable, os.path.abspath(__file__),
+                 "--view", self.path],
+                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                start_new_session=True))
+            self.pending[n] = now + 6.0  # give up placing this window after 6 s
+
+    def tick(self, now, state):
+        """Once per frame: accept viewers, read their keys, place new windows, send the state."""
+        if self.srv is None:
+            return
+        while True:
+            try:
+                c, _ = self.srv.accept()
+            except (BlockingIOError, OSError):
+                break
+            c.setblocking(False)
+            self.clients.append(c)
+        for c in list(self.clients):
+            try:
+                d = c.recv(64)
+                if not d:
+                    raise OSError
+                if b"C" in d:  # Ctrl+C pressed in a viewer (focus follows the mouse, so it may be there)
+                    _stop["n"] += 1
+            except BlockingIOError:
+                pass
+            except OSError:
+                self.clients.remove(c)
+                c.close()
+        if self.pending and now >= self.next_try:
+            self.next_try = now + 0.2
+            placed = False
+            for n, deadline in list(self.pending.items()):
+                if _i3_ok(f'[title="^UpdateRain-{n}$"] move to output {n}, fullscreen enable'):
+                    del self.pending[n]
+                    placed = True
+                elif now > deadline:
+                    del self.pending[n]
+            if placed:  # new windows grab focus; Ctrl+C belongs in the controller
+                _i3_ok(f"{self.target}focus")
+        msg = (json.dumps(state) + "\n").encode()
+        for c in list(self.clients):
+            try:
+                if c.send(msg) != len(msg):
+                    raise OSError  # partial write would corrupt the stream
+            except BlockingIOError:
+                pass  # viewer is behind; it just misses this frame
+            except OSError:
+                self.clients.remove(c)
+                c.close()
+
+    def close(self):
+        for c in self.clients:
+            c.close()
+        self.clients = []
+        if self.srv is not None:
+            self.srv.close()
+            self.srv = None
+            try:
+                os.unlink(self.path)
+            except OSError:
+                pass
+        if self.procs:
+            time.sleep(0.3)  # viewers quit by themselves when the socket closes
+            for p in self.procs:
+                if p.poll() is None:
+                    p.terminate()
+            self.procs = []
+        if self.fullscreened:
+            _i3_ok(f"{self.target}fullscreen disable")
+            self.fullscreened = False
+
+
+def view(path):
+    """Viewer: render whatever state the controller streams, until the socket closes."""
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    for _ in range(100):
+        try:
+            s.connect(path)
+            break
+        except OSError:
+            time.sleep(0.1)
+    else:
+        return 1
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    fd = sys.stdin.fileno()
+    old = termios.tcgetattr(fd)
+    raw = termios.tcgetattr(fd)
+    raw[3] &= ~(termios.ECHO | termios.ICANON | termios.ISIG)  # read ^C as a byte, don't signal
+    termios.tcsetattr(fd, termios.TCSADRAIN, raw)
+    rain, buf = Rain(), b""
+    try:
+        enter_screen()
+        while True:
+            ready, _, _ = select.select([s, fd], [], [], 1.0)
+            if fd in ready:
+                keys = os.read(fd, 32)
+                if b"\x03" in keys or b"q" in keys:
+                    s.send(b"C")
+            if s in ready:
+                data = s.recv(65536)
+                if not data:
+                    return 0
+                buf += data
+                *lines, buf = buf.split(b"\n")
+                if lines:
+                    try:
+                        st = json.loads(lines[-1])
+                    except ValueError:
+                        continue
+                    sys.stdout.write(rain.frame(st["p"], st["s"], st["t"], st["h"], st["f"]))
+                    sys.stdout.flush()
+    except (OSError, BrokenPipeError):
+        return 0
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+        leave_screen()
+
+
 # --------------------------------------------------------------------------- main loop
-def run_ui(proc, logpath, demo, countdown, verb="shutting down", demo_fail=False):
+def run_ui(proc, logpath, demo, countdown, verb="shutting down", demo_fail=False, screens=None):
     prog = Progress()
     rain = Rain()
     disp = 0.0
@@ -606,6 +781,8 @@ def run_ui(proc, logpath, demo, countdown, verb="shutting down", demo_fail=False
 
         sys.stdout.write(rain.frame(disp, status, now - start, hole, fade))
         sys.stdout.flush()
+        if screens is not None:
+            screens.tick(now, {"p": disp, "s": status, "t": now - start, "h": hole, "f": fade})
         time.sleep(max(0.0, 1 / FPS - (time.monotonic() - now)))
 
 
@@ -615,9 +792,13 @@ def main():
     ap.add_argument("--restart", action="store_true", help="reboot instead of powering off")
     ap.add_argument("--demo", action="store_true", help="animation with fake progress only")
     ap.add_argument("--demo-fail", action="store_true", help="like --demo, but the fake update fails partway")
+    ap.add_argument("--single", action="store_true", help="only use this terminal (no fullscreen on every monitor)")
+    ap.add_argument("--view", metavar="SOCKET", help=argparse.SUPPRESS)  # internal: per-monitor viewer
     ap.add_argument("--countdown", type=int, default=3, help="seconds on the closing screen (default 3)")
     ap.add_argument("--log", type=Path, default=DEFAULT_LOG)
     args = ap.parse_args()
+    if args.view:
+        return view(args.view)
     args.countdown = max(1, args.countdown)
     args.demo = args.demo or args.demo_fail
 
@@ -643,18 +824,24 @@ def main():
         )
 
     signal.signal(signal.SIGINT, lambda *_: _stop.update(n=_stop["n"] + 1))
+    screens = Screens(not args.single)
+    keep_screens = False
     try:
         rc = run_ui(proc, args.log, args.demo, args.countdown,
-                    "restarting" if args.restart else "shutting down", args.demo_fail)
+                    "restarting" if args.restart else "shutting down", args.demo_fail, screens)
         if rc == 0 and not (args.demo or args.no_shutdown):
-            # Power off while the screen is still black, so the old terminal doesn't flash back.
+            # Power off while the screens are still black, so the old desktop doesn't flash back.
+            keep_screens = True
             sd = subprocess.run(["sudo", "shutdown", "-r" if args.restart else "-h", "now"])
             if sd.returncode == 0:
                 time.sleep(60)
+            keep_screens = False
+            screens.close()
             leave_screen()
             print(f"{'reboot' if args.restart else 'shutdown'} command failed (exit code {sd.returncode}).")
             return sd.returncode
     except KeyboardInterrupt:
+        screens.close()
         leave_screen()
         print(f"\nInterrupted. NOT {'restarting' if args.restart else 'shutting down'}.")
         if proc is not None and proc.poll() is None:
@@ -662,6 +849,8 @@ def main():
             print("It keeps going in the background; do not kill it mid-transaction.")
         return 130
     finally:
+        if not keep_screens:
+            screens.close()
         leave_screen()
 
     if rc != 0:
