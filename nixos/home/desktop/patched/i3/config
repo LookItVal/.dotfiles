@@ -99,6 +99,12 @@ bindsym $mod+Return exec i3-sensible-terminal
 # kill focused window
 bindsym $mod+Shift+q kill
 
+# toggle notifications (dunst pause)
+bindsym $mod+Shift+p exec --no-startup-id ~/.config/i3/toggle-dnd.sh
+
+# audio mixer (outputs, per-app levels, notification volume/output)
+bindsym $mod+a exec --no-startup-id ~/.config/rofi/audio-mixer.sh
+
 # start dmenu (a program launcher)
 bindsym $mod+d exec "rofi -terminal $term -combi-modi window,drun -show combi -modi combi,run,ssh -icon-theme 'Papirus' -show-icons"
 # A more modern dmenu replacement is rofi:
@@ -152,7 +158,7 @@ bindsym $mod+Shift+space floating toggle
 bindsym $mod+space focus mode_toggle
 
 # focus the parent container
-bindsym $mod+a focus parent
+bindsym $mod+Shift+a focus parent
 
 # focus the child container
 #bindsym $mod+d focus child

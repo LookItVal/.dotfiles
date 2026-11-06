@@ -45,8 +45,8 @@ notify_saved_file() {
     local file_path="$3"
 
     (
-        action="$(notify-send --action=open=Open --wait "$summary" "$body" 2>/dev/null || true)"
-        if [ "$action" = "open" ]; then
+        action="$(notify-send --action=default=Open --wait "$summary" "$body" 2>/dev/null || true)"
+        if [ "$action" = "default" ]; then
             open_saved_file "$file_path"
         fi
     ) >/dev/null 2>&1 &

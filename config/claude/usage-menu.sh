@@ -94,6 +94,8 @@ theme="
 *        { font: \"FiraCode Nerd Font Mono 12\"; }
 window   { width: ${WIDTH_CH}ch; }
 mainbox  { children: [ \"message\", \"listview\" ]; }
+message  { border: 0 0 1px 0; border-color: #494d64; padding: 2px 0 10px 8px; margin: 0 0 6px 0; }
+listview { border: 0; padding: 0; }
 listview { lines: ${#rows[@]}; }
 "
 mesg="<span weight=\"bold\" size=\"large\" foreground=\"#c6a0f6\">󰚩  Usage</span>"

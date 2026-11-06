@@ -1,8 +1,11 @@
 [global]
     font = Fira Mono 12
 
-    # Rounded corners (keep in sync with the Dunst rule in picom.conf)
+    # Rounded corners are drawn by dunst itself (picom corner-radius is 0 for Dunst)
     corner_radius = 10
+    gap_size = 8
+    separator_height = 0
+    transparency = 0
     # Enable progress bars
     progress_bar = true
     progress_bar_height = 8
@@ -17,7 +20,7 @@
     script = ~/.config/dunst/dunst-sound.sh
 
     # Left click: trigger default action / follow URL
-    mouse_left_click = action_default, close_current
+    mouse_left_click = do_action, close_current
     
     # Middle click: close notification
     mouse_middle_click = close_current
@@ -38,6 +41,7 @@
     timeout = 10
 
 [urgency_critical]
+    override_pause_level = 100
     background = "#363a4f"
     foreground = "#cad3f5"
     frame_color = "#ed8796"
